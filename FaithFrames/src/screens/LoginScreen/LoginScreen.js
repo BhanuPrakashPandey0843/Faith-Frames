@@ -23,7 +23,7 @@ export default function LoginScreen() {
           style={styles.loginBtn}
           onPress={() => {
             // 🔁 Navigate to Home or OTP screen after login
-            navigation.navigate('Home');
+            navigation.navigate('Create');
           }}
         >
           <Text style={styles.loginText}>Log In</Text>
