@@ -12,7 +12,7 @@ export default function LoginScreen() {
         <Text style={styles.welcome}>Welcome Back</Text>
 
         <Image
-          source={require('../LoginScreen/logoapp.png')} // 🔁 Replace with your logo path
+          source={require('../LoginScreen/logoapp.png')} 
           style={styles.logo}
         />
 
@@ -22,7 +22,7 @@ export default function LoginScreen() {
         <TouchableOpacity
           style={styles.loginBtn}
           onPress={() => {
-            // 🔁 Navigate to Home or OTP screen after login
+         
             navigation.navigate('Create');
           }}
         >
