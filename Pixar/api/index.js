@@ -1,3 +1,4 @@
+// Faith-Frames\Pixar\api\index.js
 import axios from "axios";
 
 const API_KEY = ""; // Enter your pixabay api key here ( this is not a valid one )

@@ -1,3 +1,4 @@
+// Faith-Frames\Pixar\components\categories.js
 import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
 import React from "react";
 import data from "../constants/data";

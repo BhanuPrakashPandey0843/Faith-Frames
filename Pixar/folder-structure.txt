@@ -36,7 +36,7 @@ E:.
 |   \---home
 |    |       image.js
 |    |      index.js
-|    \-------auth login.js register.js     
+|    \-------auth login.js register.js    forgot-password.js 
 +---assets
 |   +---fonts
 |   |       SpaceMono-Regular.ttf

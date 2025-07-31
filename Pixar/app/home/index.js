@@ -172,7 +172,7 @@ import {
         {/* header */}
         <View style={styles.header}>
           <Pressable onPress={handleScrollUp}>
-            <Text style={styles.title}>Pixar</Text>
+            <Text style={styles.title}>Faith Frames</Text>
           </Pressable>
           <Pressable onPress={openFilterModal}>
             <FontAwesome6

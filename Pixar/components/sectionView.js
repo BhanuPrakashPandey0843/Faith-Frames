@@ -1,3 +1,4 @@
+// Faith-Frames\Pixar\components\sectionView.js
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import React from "react";
 import { hp } from "../helpers/common";

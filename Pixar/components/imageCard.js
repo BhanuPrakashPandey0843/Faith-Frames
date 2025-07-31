@@ -1,3 +1,4 @@
+// Faith-Frames\Pixar\components\imageCard.js
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import React from "react";
 import { Image } from "expo-image";

@@ -1,24 +1,10 @@
+// Faith-Frames\Pixar\constants\data.js
 const categories = [
-    "backgrounds",
-    "fashion",
-    "nature",
-    "science",
-    "education",
-    "feelings",
-    "health",
-    "people",
-    "religion",
-    "places",
-    "animals",
-    "industry",
-    "computer",
-    "food",
-    "sports",
-    "transportation",
-    "travel",
-    "buildings",
-    "business",
-    "music",
+  "English",  
+  "Tamil",
+  "Telugu",
+  "Hindi",
+   
   ];
   
   const filters = {
@@ -47,3 +33,5 @@ const categories = [
   };
   
   export default data;
+
+   

@@ -1,3 +1,4 @@
+// Faith-Frames\Pixar\constants\theme.js
 export const theme = {
     colors: {
         white: '#ffffff',
