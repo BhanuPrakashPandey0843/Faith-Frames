@@ -38,17 +38,24 @@ import {
       fetchImages();
     }, []);
   
-    const fetchImages = async (params = { page: 1 }, append = true) => {
-      console.log("params: ", params, append);
-      let response = await apiCall(params);
-      if (response.success && response?.data?.hits) {
-        if (append) {
-          setImages([...images, ...response.data.hits]);
-        } else {
-          setImages([...response.data.hits]);
-        }
-      }
-    };
+    const fetchImages = async (params = {}, append = true) => {
+  console.log("params: ", params, append);
+  let response = await apiCall(params);
+  if (response.success && Array.isArray(response.data)) {
+    const formattedImages = response.data.map(item => ({
+      id: item._id,
+      url: item.url,
+      title: item.title,
+    }));
+
+    if (append) {
+      setImages(prev => [...prev, ...formattedImages]);
+    } else {
+      setImages(formattedImages);
+    }
+  }
+};
+
   
     const handleChangeCategory = (category) => {
       setActiveCategory(category);
@@ -268,7 +275,14 @@ import {
           )}
   
           {/* images masonry grid */}
-          <View>{images.length > 0 && <ImageGrid images={images} router={router} />}</View>
+          <View>
+  {images.length > 0 ? (
+    <ImageGrid images={images} router={router} />
+  ) : (
+    <Text style={{ textAlign: "center", marginTop: 20 }}>No wallpapers found</Text>
+  )}
+</View>
+
   
           {/* loading */}
           <View

@@ -1,3 +1,4 @@
+// Pixar\app\home\image.js
 import {
     View,
     Text,
@@ -22,11 +23,12 @@ import {
   
   const ImageScreen = () => {
     const router = useRouter();
-    const item = useLocalSearchParams();
-    const [status, setStatus] = useState("loading");
-    const uri = item?.webformatURL;
-    const fileName = item?.previewURL?.split("/").pop();
-    const imageUrl = uri;
+   const item = useLocalSearchParams();
+const [status, setStatus] = useState("loading");
+const uri = item?.url;
+const fileName = uri?.split("/").pop();
+const imageUrl = uri;
+
     const filePath = `${FileSystem.documentDirectory}${fileName}`;
   
     const onLoad = () => {

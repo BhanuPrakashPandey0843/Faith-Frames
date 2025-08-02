@@ -1,27 +1,13 @@
-// Faith-Frames\Pixar\api\index.js
+// Pixar/api/index.js
 import axios from "axios";
 
-const API_KEY = ""; // Enter your pixabay api key here ( this is not a valid one )
+// ✅ Use local IP address of the backend server (works on physical devices)
+const BASE_URL = "http://192.168.0.110:5000/api"; // Don't use localhost for real devices
 
-const apiUrl = `https://pixabay.com/api/?key=${API_KEY}`;
-
-const formatUrl = (params) => {
-  let url = apiUrl + "&per_page=25&safesearch=true&editors_choice=true";
-  if (!params) return url;
-  let paramKeys = Object.keys(params);
-  paramKeys.map((key) => {
-    let value = key == "q" ? encodeURIComponent(params[key]) : params[key];
-    url += `&${key}=${value}`;
-  });
-  console.log("final url: ", url);
-  return url;
-};
-
-export const apiCall = async (params) => {
+export const apiCall = async (params = {}) => {
   try {
-    const response = await axios.get(formatUrl(params));
-    const { data } = response;
-    return { success: true, data };
+    const response = await axios.get(`${BASE_URL}/wallpapers`, { params });
+    return { success: true, data: response.data };
   } catch (error) {
     console.log("got error: ", error.message);
     return { success: false, msg: error.message };
