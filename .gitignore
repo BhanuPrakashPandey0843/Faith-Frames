@@ -1,0 +1,60 @@
+# -----------------------------
+# Node.js / Express (Backend)
+# -----------------------------
+backend/node_modules/
+backend/.env
+backend/.DS_Store
+backend/logs/
+backend/debug.log
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
+backend/.eslintcache
+
+# MongoDB dumps (if any)
+backend/dump/
+
+# Production build (if built separately)
+backend/dist/
+backend/build/
+
+# -----------------------------
+# React Native (Frontend)
+# -----------------------------
+frontend/node_modules/
+frontend/.expo/
+frontend/.expo-shared/
+frontend/.env
+frontend/.DS_Store
+frontend/android/app/debug.keystore
+frontend/ios/Pods/
+frontend/ios/Podfile.lock
+frontend/ios/Podfile
+
+# React Native build artifacts
+frontend/android/.gradle/
+frontend/android/app/build/
+frontend/android/.idea/
+frontend/build/
+frontend/.vscode/
+frontend/.idea/
+
+# Logs
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/logs/
+
+# Metro bundler cache
+frontend/.metro-cache/
+frontend/tmp/
+frontend/.temp/
+
+# OS
+*.swp
+*.swo
+*~
+
+# Editor configs
+.vscode/
+.idea/
