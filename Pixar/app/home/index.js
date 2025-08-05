@@ -1,3 +1,4 @@
+// Pixar\app\home\index.js
 import {
     View,
     Text,

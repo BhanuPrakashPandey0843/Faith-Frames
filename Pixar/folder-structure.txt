@@ -29,14 +29,19 @@ E:.
 +---api
 |       index.js
 |       
-+---app
-|   |   index.js
-|   |   _layout.js
-|   |   
-|   \---home
-|    |       image.js
-|    |      index.js
-|    \-------auth login.js register.js    forgot-password.js 
+├── app/
+│   ├── _layout.js                # Main layout for all routes
+│   ├── index.js                  # Root route
+│   │
+│   ├── home/
+│   │   ├── index.js              # /home route
+│   │   ├── image.js              # /home/image route
+│   │   ├── payment/              # /home/payment route (nested)
+│   │   │   └── index.js          # Default /home/payment screen
+│   │   └── auth/
+│   │       ├── login.js          # /home/auth/login route
+│   │       ├── register.js       # /home/auth/register route
+│   │       └── forgot-password.js# /home/auth/forgot-password route
 +---assets
 |   +---fonts
 |   |       SpaceMono-Regular.ttf
@@ -75,3 +80,5 @@ E:.
 \---scripts
         reset-project.js
         
+
+
