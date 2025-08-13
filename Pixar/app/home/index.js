@@ -7,6 +7,7 @@ import {
     ScrollView,
     TextInput,
     ActivityIndicator,
+    Image,
   } from "react-native";
   import React, { useCallback, useEffect, useRef, useState } from "react";
   import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -17,6 +18,8 @@ import {
   import { apiCall } from "../../api";
   import ImageGrid from "../../components/imagegrid";
   import FiltersModel from "../../components/filterModals";
+  import StackCard from "../../components/StackCard"; 
+ 
   import { debounce, set } from "lodash";
   import { useRouter } from "expo-router";
   
@@ -177,19 +180,23 @@ import {
   
     return (
       <View style={[styles.container, { paddingTop }]}>
-        {/* header */}
-        <View style={styles.header}>
-          <Pressable onPress={handleScrollUp}>
-            <Text style={styles.title}>Faith Frames</Text>
-          </Pressable>
-          <Pressable onPress={openFilterModal}>
-            <FontAwesome6
-              name="bars-staggered"
-              size={22}
-              color={theme.colors.neutral(0.7)}
-            />
-          </Pressable>
-        </View>
+        
+   {/* header */}
+<View style={styles.header}>
+  <View>
+    <Text style={styles.userName}>Hello, John Doe</Text>
+    <Text style={styles.welcomeText}>Welcome To Faith Frames</Text>
+  </View>
+  <Pressable onPress={() => console.log("Profile tapped")}>
+    <View style={styles.profileImageContainer}>
+      <Image
+        source={{ uri: "https://img.freepik.com/premium-photo/young-professional-man-suit-smiling_605022-20977.jpg" }} // Replace with actual user image URL
+        style={styles.profileImage}
+      />
+    </View>
+  </Pressable>
+</View>
+
   
         <ScrollView
           onScroll={handleScroll}
@@ -226,72 +233,10 @@ import {
               </Pressable>
             )}
           </View>
-  
-          {/* categories */}
-          <View style={styles.catagories}>
-            <Catagories
-              activeCategory={activeCategory}
-              handleChangeCategory={handleChangeCategory}
-            />
-          </View>
-  
-          {/* filters */}
-          {filters && (
-            <View style={{ flexDirection: "row", justifyContent: "center" }}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.filters}
-              >
-                {Object.keys(filters).map((key, index) => {
-                  return (
-                    <View key={key} style={styles.filterItem}>
-                      {key === "colors" ? (
-                        <View
-                          style={{
-                            width: 30,
-                            height: 20,
-                            backgroundColor: filters[key],
-                            borderRadius: 7,
-                          }}
-                        />
-                      ) : (
-                        <Text style={styles.filterItemText}>{filters[key]}</Text>
-                      )}
-                      <Pressable
-                        style={styles.filterCloseIcon}
-                        onPress={() => clearThisFilter(key)}
-                      >
-                        <Ionicons
-                          name="close"
-                          size={14}
-                          color={theme.colors.neutral(0.9)}
-                        />
-                      </Pressable>
-                    </View>
-                  );
-                })}
-              </ScrollView>
-            </View>
-          )}
-  
-          {/* images masonry grid */}
-          <View>
-  {images.length > 0 ? (
-    <ImageGrid images={images} router={router} />
-  ) : (
-    <Text style={{ textAlign: "center", marginTop: 20 }}>No wallpapers found</Text>
-  )}
-</View>
-
-  
-          {/* loading */}
-          <View
-            style={{ marginBottom: 20, marginTop: images.length > 0 ? 10 : 70 }}
-          >
-            <ActivityIndicator size="large" color={theme.colors.neutral(0.5)} />
-          </View>
+         <StackCard />
+        
         </ScrollView>
+       
   
         {/* filter model */}
         <FiltersModel
@@ -306,70 +251,95 @@ import {
     );
   };
   
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      gap: 15,
-    },
-    header: {
-      marginHorizontal: wp(4),
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-    },
-    title: {
-      fontSize: hp(4),
-      fontWeight: theme.fontWeights.semibold,
-      color: theme.colors.neutral(0.9),
-    },
-    searchBar: {
-      marginHorizontal: wp(4),
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      borderWidth: 1,
-      borderColor: theme.colors.grayBG,
-      backgroundColor: theme.colors.white,
-      padding: 6,
-      paddingLeft: 10,
-      borderRadius: theme.radius.lg,
-    },
-    searchIcon: {
-      padding: 8,
-    },
-    searchInput: {
-      flex: 1,
-      borderRadius: theme.radius.sm,
-      paddingVertical: 10,
-      fontSize: hp(1.8),
-    },
-    closeIcon: {
-      backgroundColor: theme.colors.grayBG,
-      padding: 8,
-      borderRadius: theme.radius.sm,
-    },
-    filters: {
-      paddingHorizontal: wp(4),
-      gap: 10,
-    },
-    filterItem: {
-      backgroundColor: theme.colors.grayBG,
-      // padding: 3,
-      flexDirection: "row",
-      alignItems: "center",
-      borderRadius: theme.radius.sm,
-      padding: 8,
-      gap: 10,
-      paddingHorizontal: 10,
-    },
-    filterItemText: {
-      fontSize: hp(1.9),
-    },
-    filterCloseIcon: {
-      backgroundColor: theme.colors.neutral(0.2),
-      padding: 4,
-      borderRadius: 7,
-    },
-  });
-  
-  export default HomeScreen;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.white,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: wp(4),
+    paddingVertical: hp(2),
+  },
+  userName: {
+    fontSize: hp(2.4),
+    fontWeight: theme.fontWeights.medium,
+    color: theme.colors.neutral(0.7),
+  },
+  welcomeText: {
+    fontSize: hp(2.8),
+    fontWeight: theme.fontWeights.semibold,
+    color: theme.colors.neutral(0.9),
+  },
+  profileImageContainer: {
+    width: hp(6),
+    height: hp(6),
+    borderRadius: hp(3),
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: theme.colors.grayBG,
+  },
+  profileImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.radius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.grayBG,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginHorizontal: wp(4),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  searchIcon: {
+    paddingRight: 6,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: hp(1.9),
+    color: theme.colors.neutral(0.9),
+    paddingVertical: 6,
+  },
+  closeIcon: {
+    backgroundColor: theme.colors.grayBG,
+    padding: 6,
+    borderRadius: theme.radius.sm,
+  },
+  filters: {
+    paddingHorizontal: wp(4),
+    gap: 10,
+    marginTop: hp(1),
+  },
+  filterItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.grayBG,
+    borderRadius: 50, // pill shape
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    gap: 8,
+  },
+  filterItemText: {
+    fontSize: hp(1.8),
+    color: theme.colors.neutral(0.8),
+  },
+  filterCloseIcon: {
+    backgroundColor: theme.colors.neutral(0.2),
+    padding: 4,
+    borderRadius: 50,
+  },
+});export default HomeScreen;
+
+
+

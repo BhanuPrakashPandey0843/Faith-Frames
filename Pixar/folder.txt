@@ -6,7 +6,7 @@ E:.
 |   babel.config.js
 |   expo-env.d.ts
 |   folder-structure.txt
-|   folder.txt
+|   package-lock.json
 |   package.json
 |   README.md
 |   tsconfig.json
@@ -26,7 +26,6 @@ E:.
 |                       \---favicon-24272cdaeff82cc5facdaccd982a6f05b60c4504704bbf94c19a6388659880bb-contain-transparent
 |                               favicon-48.png
 |                               
-+---.vscode
 +---api
 |       index.js
 |       
@@ -44,9 +43,6 @@ E:.
 |   |       quizData.js
 |   |       user.js
 |   |       
-|   +---favourite
-|   |       FavouriteScreen.jsx
-|   |       
 |   +---home
 |   |   |   image.js
 |   |   |   index.js
@@ -54,33 +50,14 @@ E:.
 |   |   \---payment
 |   |           index.js
 |   |           
-|   +---profile
-|   |       EditProfileScreen.jsx
-|   |       
-|   +---quiz
-|   |       ProgressOpacity.jsx
-|   |       QuizQuestionScreen.jsx
-|   |       QuizScreen.jsx
-|   |       
-|   +---reactnav
-|   |       index.js
-|   |       
-|   +---setting
-|   |       SettingScreen.jsx
-|   |       
 |   +---theme
 |   |       colors.js
 |   |       scale.js
 |   |       
-|   +---utils
-|   |       commonStyles.js
-|   |       constant.js
-|   |       SnackbarUtils.js
-|   |       
-|   \---wallpaper
-|           index.js
-|           WallpaperDetailScreen.jsx
-|           WallpaperListScreen.jsx
+|   \---utils
+|           commonStyles.js
+|           constant.js
+|           SnackbarUtils.js
 |           
 +---assets
 |   +---fonts
@@ -101,8 +78,6 @@ E:.
 |           
 +---components
 |       categories.js
-|       CustomBottomsheet.jsx
-|       CustomInputField.jsx
 |       filterModals.js
 |       Icon.jsx
 |       imageCard.js
@@ -110,7 +85,6 @@ E:.
 |       sectionView.js
 |       StackCard.jsx
 |       StackCardItem.jsx
-|       TopBar.jsx
 |       
 +---constants
 |       data.js
@@ -123,10 +97,6 @@ E:.
 |       useColorScheme.ts
 |       useColorScheme.web.ts
 |       useThemeColor.ts
-|       
-+---navigation
-|       root-navigation.js
-|       tab-navigation.js
 |       
 \---scripts
         reset-project.js
