@@ -1,3 +1,4 @@
+// E:\2025\Freelance\Faith-Frames\Pixar\app\favourite\index.js
 import { View, Text, StyleSheet } from 'react-native';
 import React from 'react';
 import { fontSize } from '../theme/scale';

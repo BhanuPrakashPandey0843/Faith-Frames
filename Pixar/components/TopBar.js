@@ -1,18 +1,19 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { fontSize, HP, WP } from '../app/theme/scale';
 import { ChevronLeftIcon } from 'react-native-heroicons/outline';
-import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router'; // ✅ useRouter instead of useNavigation
 import { colors } from '../app/theme/colors';
 import Animated, { FadeInUp, RollInLeft } from 'react-native-reanimated';
 
 const TopBar = ({ title, rightView }) => {
-  const navigation = useNavigation();
+  const router = useRouter(); // ✅ Expo Router hook
+
   return (
     <View style={styles.header}>
       <Animated.View entering={RollInLeft.delay(100).duration(700).springify()}>
         <TouchableOpacity
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          onPress={() => navigation.goBack()}
+          onPress={() => router.back()} // ✅ router.back() replaces navigation.goBack()
           style={styles.backBtn}
         >
           <ChevronLeftIcon
@@ -22,12 +23,14 @@ const TopBar = ({ title, rightView }) => {
           />
         </TouchableOpacity>
       </Animated.View>
+
       <Animated.Text
         entering={FadeInUp.delay(100).duration(700).springify()}
         style={styles.titleTxt}
       >
         {title}
       </Animated.Text>
+
       {rightView || <View style={styles.emptyView} />}
     </View>
   );

@@ -1,19 +1,19 @@
-// E:\2025\Freelance\Faith-Frames\Pixar\navigation\TabNavigation.js
+// E:\2025\Freelance\Faith-Frames\Pixar\navigation\bottomnav.js
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, StyleSheet, Platform } from 'react-native';
 import { ScreenConstants } from '../app/utils/constant';
 import HomeScreen from '../app/home/index';
-import QuizScreen from '../app/quiz';
+import QuizScreen from '../app/quiz/index';
 import FavouriteScreen from '../app/favourite';
-import SettingScreen from '../app/setting';
+import SettingScreen from '../app/setting/index';
 import Icon from '../components/Icon';
 import { colors } from '../app/theme/colors';
 import { fontSize, HP, WP } from '../app/theme/scale';
 
 const Tab = createBottomTabNavigator();
 
-const TabNavigation = () => {
+const bottomnav = () => {
   return (
     <Tab.Navigator
       initialRouteName={ScreenConstants.HOME_SCREEN}
@@ -82,7 +82,7 @@ const menuIcons = (route, focused) => {
   );
 };
 
-export default TabNavigation;
+export default bottomnav;
 
 const styles = StyleSheet.create({
   iconContainer: {

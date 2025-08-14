@@ -1,4 +1,4 @@
-// E:\2025\Freelance\Faith-Frames\Pixar\navigation\TabNavigation.js
+// navigation/BottomTabs.js
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, StyleSheet, Platform } from 'react-native';
@@ -13,7 +13,7 @@ import { fontSize, HP, WP } from '../app/theme/scale';
 
 const Tab = createBottomTabNavigator();
 
-const TabNavigation = () => {
+const BottomTabs = () => {
   return (
     <Tab.Navigator
       initialRouteName={ScreenConstants.HOME_SCREEN}
@@ -82,7 +82,7 @@ const menuIcons = (route, focused) => {
   );
 };
 
-export default TabNavigation;
+export default BottomTabs;
 
 const styles = StyleSheet.create({
   iconContainer: {

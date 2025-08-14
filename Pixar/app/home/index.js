@@ -1,261 +1,231 @@
-// Pixar\app\home\index.js
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-    View,
-    Text,
-    Pressable,
-    StyleSheet,
-    ScrollView,
-    TextInput,
-    ActivityIndicator,
-    Image,
-  } from "react-native";
-  import React, { useCallback, useEffect, useRef, useState } from "react";
-  import { useSafeAreaInsets } from "react-native-safe-area-context";
-  import { Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
-  import { theme } from "../../constants/theme";
-  import { hp, wp } from "../../helpers/common";
-  import Catagories from "../../components/categories";
-  import { apiCall } from "../../api";
-  import ImageGrid from "../../components/imagegrid";
-  import FiltersModel from "../../components/filterModals";
-  import StackCard from "../../components/StackCard"; 
- 
-  import { debounce, set } from "lodash";
-  import { useRouter } from "expo-router";
-  
-  var page = 1;
-  
-  const HomeScreen = () => {
-    const { top } = useSafeAreaInsets();
-    const paddingTop = top > 0 ? top + 10 : 30;
-    const [search, setSearch] = useState("");
-    const [images, setImages] = useState([]);
-    const [filters, setFilters] = useState(null);
-    const [activeCategory, setActiveCategory] = useState(null);
-    const searchInputRef = useRef(null);
-    const modelRef = useRef(null);
-    const scrollRef = useRef(null);
-    const [isEndReached, setIsEndReached] = useState(false);
-    const router = useRouter();
-  
-    useEffect(() => {
-      fetchImages();
-    }, []);
-  
-    const fetchImages = async (params = {}, append = true) => {
-  console.log("params: ", params, append);
-  let response = await apiCall(params);
-  if (response.success && Array.isArray(response.data)) {
-    const formattedImages = response.data.map(item => ({
-      id: item._id,
-      url: item.url,
-      title: item.title,
-    }));
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  Image,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  Feather,
+  FontAwesome5,
+  Ionicons,
+  MaterialIcons,
+} from "@expo/vector-icons";
+import { debounce } from "lodash";
+import { useRouter } from "expo-router";
+import { hp, wp } from "../../helpers/common";
+import StackCard from "../../components/StackCard";
+import FiltersModel from "../../components/filterModals";
+import { apiCall } from "../../api";
 
-    if (append) {
-      setImages(prev => [...prev, ...formattedImages]);
-    } else {
-      setImages(formattedImages);
-    }
-  }
+// ✅ Local theme fallback so no undefined errors
+const theme = {
+  colors: {
+    white: "#FFFFFF",
+    grayBG: "#F0F0F0",
+    neutral: (opacity) => `rgba(0,0,0,${opacity})`,
+  },
+  fontWeights: {
+    medium: "500",
+    semibold: "600",
+  },
+  radius: {
+    sm: 6,
+    lg: 12,
+  },
 };
 
-  
-    const handleChangeCategory = (category) => {
-      setActiveCategory(category);
-      clearSearch();
-      setImages([]);
-      page = 1;
+let page = 1;
+
+const tabs = [
+  { id: "home", icon: "home-outline", lib: Ionicons, route: "/" },
+  { id: "heart", icon: "heart", lib: FontAwesome5, route: "/favourite" },
+  { id: "settings", icon: "settings-outline", lib: Ionicons, route: "/setting" },
+  { id: "quiz", icon: "help-outline", lib: MaterialIcons, route: "/quiz" },
+];
+
+const HomeScreen = () => {
+  const { top } = useSafeAreaInsets();
+  const paddingTop = top > 0 ? top + 10 : 30;
+
+  const [search, setSearch] = useState("");
+  const [images, setImages] = useState([]);
+  const [filters, setFilters] = useState(null);
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [activeTab, setActiveTab] = useState("home");
+  const [isEndReached, setIsEndReached] = useState(false);
+
+  const searchInputRef = useRef(null);
+  const modelRef = useRef(null);
+  const scrollRef = useRef(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    fetchImages();
+  }, []);
+
+  const fetchImages = async (params = {}, append = true) => {
+    try {
+      const response = await apiCall(params);
+      if (response.success && Array.isArray(response.data)) {
+        const formattedImages = response.data.map((item) => ({
+          id: item._id,
+          url: item.url,
+          title: item.title,
+        }));
+        setImages((prev) => (append ? [...prev, ...formattedImages] : formattedImages));
+      }
+    } catch (err) {
+      console.error("Image fetch error:", err);
+    }
+  };
+
+  const handleSearch = (text) => {
+    setSearch(text);
+    page = 1;
+    setImages([]);
+    setActiveCategory(null);
+    const params = text.length > 2 ? { page, q: text, ...filters } : { page, ...filters };
+    fetchImages(params, false);
+  };
+
+  const handleTextDebounce = useCallback(debounce(handleSearch, 400), []);
+
+  const applyFilters = () => {
+    page = 1;
+    setImages([]);
+    let params = { page, ...filters };
+    if (activeCategory) params.category = activeCategory;
+    if (search) params.q = search;
+    fetchImages(params, false);
+    modelRef?.current?.close();
+  };
+
+  const resetFilters = () => {
+    page = 1;
+    setFilters(null);
+    setImages([]);
+    let params = { page };
+    if (activeCategory) params.category = activeCategory;
+    if (search) params.q = search;
+    fetchImages(params, false);
+    modelRef?.current?.close();
+  };
+
+  const handleScroll = (event) => {
+    const { contentSize, layoutMeasurement, contentOffset } = event.nativeEvent;
+    const bottomPosition = contentSize.height - layoutMeasurement.height;
+
+    if (contentOffset.y >= bottomPosition - 1 && !isEndReached) {
+      setIsEndReached(true);
+      page++;
       let params = { page, ...filters };
-      if (category) params.category = category;
-      fetchImages(params, false);
-    };
-  
-    const handleSearch = (text) => {
-      setSearch(text);
-      if (text.length > 2) {
-        //search for this text
-        page = 1;
-        setImages([]);
-        setActiveCategory(null); // clear category when searching
-        fetchImages({ page, q: text, ...filters }, false);
-      }
-  
-      if (text == "") {
-        page = 1;
-        searchInputRef?.current?.clear();
-        setImages([]);
-        setActiveCategory(null); // clear category when searching
-        fetchImages({ page, ...filters }, false);
-      }
-    };
-  
-    const handleTextDebounce = useCallback(debounce(handleSearch, 400), []);
-  
-    const clearSearch = () => {
-      setSearch("");
-    };
-  
-    const openFilterModal = () => {
-      modelRef?.current?.present();
-    };
-  
-    const closeFilterModal = () => {
-      modelRef?.current?.close();
-    };
-  
-    const applyFilters = () => {
-      if (filters) {
-        page = 1;
-        setImages([]);
-        let params = {
-          page,
-          ...filters,
-        };
-        if (activeCategory) params.category = activeCategory;
-        if (search) params.q = search;
-        fetchImages(params, false);
-      }
-      closeFilterModal();
-    };
-  
-    const resetFilters = () => {
-      if (filters) {
-        page = 1;
-        setFilters(null);
-        setImages([]);
-        let params = {
-          page,
-        };
-        if (activeCategory) params.category = activeCategory;
-        if (search) params.q = search;
-        fetchImages(params, false);
-      }
-      closeFilterModal();
-    };
-  
-    const clearThisFilter = (filterName) => {
-      let newFilters = { ...filters };
-      delete newFilters[filterName];
-      setFilters({ ...newFilters });
-      page = 1;
-      setImages([]);
-      let params = {
-        page,
-        ...newFilters,
-      };
       if (activeCategory) params.category = activeCategory;
       if (search) params.q = search;
-      fetchImages(params);
-    };
-  
-    const handleScrollUp = () => {
-      scrollRef?.current?.scrollTo({
-        y: 0,
-        animated: true,
-      });
-    };
-  
-    const handleScroll = (event) => {
-      const contentHeight = event.nativeEvent.contentSize.height;
-      const scrollViewHeight = event.nativeEvent.layoutMeasurement.height;
-      const scrollOffset = event.nativeEvent.contentOffset.y;
-      const bottomPosition = contentHeight - scrollViewHeight;
-  
-      if (scrollOffset >= bottomPosition - 1) {
-        if (!isEndReached) {
-          setIsEndReached(true);
-          console.log("reach to the bottom");
-          // fetch more images
-          ++page;
-          let params = { page, ...filters };
-          if (activeCategory) params.category = activeCategory;
-          if (search) params.q = search;
-          fetchImages(params, true);
-        }
-      } else if (isEndReached) { 
-        setIsEndReached(false);
-      }
-    };
-  
-    return (
-      <View style={[styles.container, { paddingTop }]}>
-        
-   {/* header */}
-<View style={styles.header}>
-  <View>
-    <Text style={styles.userName}>Hello, John Doe</Text>
-    <Text style={styles.welcomeText}>Welcome To Faith Frames</Text>
-  </View>
-  <Pressable onPress={() => console.log("Profile tapped")}>
-    <View style={styles.profileImageContainer}>
-      <Image
-        source={{ uri: "https://img.freepik.com/premium-photo/young-professional-man-suit-smiling_605022-20977.jpg" }} // Replace with actual user image URL
-        style={styles.profileImage}
-      />
-    </View>
-  </Pressable>
-</View>
-
-  
-        <ScrollView
-          onScroll={handleScroll}
-          scrollEventThrottle={5} // how often we should listen to scroll events
-          ref={scrollRef}
-          contentContainerStyle={{ gap: 15 }}
-        >
-          {/* search bar */}
-          <View style={styles.searchBar}>
-            <View style={styles.searchIcon}>
-              <Feather
-                name="search"
-                size={24}
-                color={theme.colors.neutral(0.4)}
-              />
-            </View>
-            <TextInput
-              placeholder="Search for Images"
-              // value={search}
-              ref={searchInputRef}
-              onChangeText={handleTextDebounce}
-              style={styles.searchInput}
-            />
-            {search && (
-              <Pressable
-                onPress={() => handleSearch("")}
-                style={styles.closeIcon}
-              >
-                <Ionicons
-                  name="close"
-                  size={24}
-                  color={theme.colors.neutral(0.6)}
-                />
-              </Pressable>
-            )}
-          </View>
-         <StackCard />
-        
-        </ScrollView>
-       
-  
-        {/* filter model */}
-        <FiltersModel
-          modelRef={modelRef}
-          filters={filters}
-          setFilters={setFilters}
-          onClose={closeFilterModal}
-          onApply={applyFilters}
-          onReset={resetFilters}
-        />
-      </View>
-    );
+      fetchImages(params, true);
+    } else if (contentOffset.y < bottomPosition - 1 && isEndReached) {
+      setIsEndReached(false);
+    }
   };
-  
+
+  const handleTabPress = (tabId, route) => {
+    setActiveTab(tabId);
+    router.push(route);
+  };
+
+  return (
+    <View style={[styles.container, { paddingTop }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.userName}>Hello, John Doe</Text>
+          <Text style={styles.welcomeText}>Welcome To Faith Frames</Text>
+        </View>
+        <Pressable onPress={() => router.push("/profile")}>
+          <View style={styles.profileImageContainer}>
+            <Image
+              source={{
+                uri: "https://img.freepik.com/premium-photo/young-professional-man-suit-smiling_605022-20977.jpg",
+              }}
+              style={styles.profileImage}
+            />
+          </View>
+        </Pressable>
+      </View>
+
+      <ScrollView
+        onScroll={handleScroll}
+        scrollEventThrottle={5}
+        ref={scrollRef}
+        contentContainerStyle={{ gap: 15, paddingBottom: hp(12) }}
+      >
+        {/* Search bar */}
+        <View style={styles.searchBar}>
+          <Feather
+            name="search"
+            size={22}
+            color={theme.colors.neutral(0.4)}
+            style={styles.searchIcon}
+          />
+          <TextInput
+            placeholder="Search for Images"
+            ref={searchInputRef}
+            onChangeText={handleTextDebounce}
+            value={search}
+            style={styles.searchInput}
+          />
+          {search ? (
+            <Pressable onPress={() => handleSearch("")} style={styles.closeIcon}>
+              <Ionicons name="close" size={20} color={theme.colors.neutral(0.6)} />
+            </Pressable>
+          ) : null}
+        </View>
+
+        {/* Image Stack */}
+        <StackCard images={images} />
+      </ScrollView>
+
+      {/* Filter modal */}
+      <FiltersModel
+        modelRef={modelRef}
+        filters={filters}
+        setFilters={setFilters}
+        onClose={() => modelRef?.current?.close()}
+        onApply={applyFilters}
+        onReset={resetFilters}
+      />
+
+      {/* Floating Bottom Navigation */}
+      <View style={styles.floatingBottomNav}>
+        {tabs.map(({ id, icon, lib: IconLib, route }) => {
+          const isActive = activeTab === id;
+          return (
+            <Pressable
+              key={id}
+              style={styles.navItem}
+              onPress={() => handleTabPress(id, route)}
+            >
+              <View style={[styles.iconWrapper, isActive && styles.activeIcon]}>
+                <IconLib
+                  name={icon}
+                  size={24}
+                  color={isActive ? "#000" : "#fff"}
+                />
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.white,
-  },
+  container: { flex: 1, backgroundColor: theme.colors.white },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -281,11 +251,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.grayBG,
   },
-  profileImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
+  profileImage: { width: "100%", height: "100%", resizeMode: "cover" },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
@@ -302,9 +268,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
-  searchIcon: {
-    paddingRight: 6,
-  },
+  searchIcon: { marginRight: 6 },
   searchInput: {
     flex: 1,
     fontSize: hp(1.9),
@@ -316,30 +280,38 @@ const styles = StyleSheet.create({
     padding: 6,
     borderRadius: theme.radius.sm,
   },
-  filters: {
-    paddingHorizontal: wp(4),
-    gap: 10,
-    marginTop: hp(1),
-  },
-  filterItem: {
+  floatingBottomNav: {
+    position: "absolute",
+    bottom: hp(3),
+    left: wp(5),
+    right: wp(5),
+    height: hp(8),
+    backgroundColor: "#000",
+    borderRadius: hp(3.5),
     flexDirection: "row",
+    justifyContent: "space-around",
     alignItems: "center",
-    backgroundColor: theme.colors.grayBG,
-    borderRadius: 50, // pill shape
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    gap: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 10,
   },
-  filterItemText: {
-    fontSize: hp(1.8),
-    color: theme.colors.neutral(0.8),
+  navItem: { flex: 1, alignItems: "center", justifyContent: "center" },
+  iconWrapper: {
+    padding: 10,
+    borderRadius: 30,
   },
-  filterCloseIcon: {
-    backgroundColor: theme.colors.neutral(0.2),
-    padding: 4,
-    borderRadius: 50,
+  activeIcon: {
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
+    elevation: 3,
   },
-});export default HomeScreen;
+});
 
+export default HomeScreen;
 
 

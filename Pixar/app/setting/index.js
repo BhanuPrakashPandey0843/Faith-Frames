@@ -1,3 +1,4 @@
+// E:\2025\Freelance\Faith-Frames\Pixar\app\setting\index.js
 import {
   View,
   Text,
@@ -5,67 +6,80 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-} from 'react-native';
-import React from 'react';
-import Icon from '../../components/Icon';
-import { colors } from '../theme/colors';
-import { fontSize, HP, WP } from '../theme/scale';
-import TopBar from '../../components/TopBar';
-import { ScreenConstants } from '../utils/constant';
-import user from '../data/user';
+} from "react-native";
+import React from "react";
+import { useRouter } from "expo-router"; // ✅ Use expo-router navigation
+import Icon from "../../components/Icon";
+import { colors } from "../theme/colors";
+import { fontSize, HP, WP } from "../theme/scale";
+import TopBar from "../../components/TopBar";
+import { ScreenConstants } from "../utils/constant";
+import user from "../data/user";
 
-const SettingScreen = ({ navigation }) => {
+const SettingScreen = () => {
+  const router = useRouter(); // ✅ Get router instance
+
   const menuItems = [
     {
-      section: 'main',
+      section: "main",
       items: [
-        { id: 1, title: 'Favourites', icon: 'HeartIcon', onPress: () => {} },
+        {
+          id: 1,
+          title: "Favourites",
+          icon: "HeartIcon",
+          onPress: () => router.push("/favourite"), // ✅ Expo Router route
+        },
         {
           id: 2,
-          title: 'Downloads',
-          icon: 'ArrowDownTrayIcon',
-          onPress: () => {},
+          title: "Downloads",
+          icon: "ArrowDownTrayIcon",
+          onPress: () => console.log("Downloads pressed"),
         },
       ],
     },
     {
-      section: 'settings',
+      section: "settings",
       items: [
         {
           id: 5,
-          title: 'Terms & Conditions',
-          icon: 'PlayIcon',
-          onPress: () => {},
+          title: "Terms & Conditions",
+          icon: "PlayIcon",
+          onPress: () => console.log("Terms pressed"),
         },
         {
           id: 6,
-          title: 'Privacy Policy',
-          icon: 'ComputerDesktopIcon',
-          onPress: () => {},
+          title: "Privacy Policy",
+          icon: "ComputerDesktopIcon",
+          onPress: () => console.log("Privacy pressed"),
         },
       ],
     },
     {
-      section: 'actions',
+      section: "actions",
       items: [
-        { id: 7, title: 'Contact Us', icon: 'TrashIcon', onPress: () => {} },
+        {
+          id: 7,
+          title: "Contact Us",
+          icon: "TrashIcon",
+          onPress: () => console.log("Contact pressed"),
+        },
         {
           id: 8,
-          title: 'Rate & Share App',
-          icon: 'ClockIcon',
-          onPress: () => {},
+          title: "Rate & Share App",
+          icon: "ClockIcon",
+          onPress: () => console.log("Rate pressed"),
         },
         {
           id: 9,
-          title: 'Logout',
-          icon: 'ArrowRightOnRectangleIcon',
-          onPress: () => {},
+          title: "Logout",
+          icon: "ArrowRightOnRectangleIcon",
+          onPress: () => console.log("Logout pressed"),
         },
       ],
     },
   ];
 
-  const renderMenuItem = item => (
+  const renderMenuItem = (item) => (
     <TouchableOpacity
       key={item.id}
       style={styles.menuItem}
@@ -110,9 +124,7 @@ const SettingScreen = ({ navigation }) => {
             </View>
           </View>
           <TouchableOpacity
-            onPress={() =>
-              navigation.navigate(ScreenConstants.EDIT_PROFILE_SCREEN)
-            }
+            onPress={() => router.push(ScreenConstants.EDIT_PROFILE_SCREEN)}
             style={styles.editButton}
           >
             <Text style={styles.editButtonText}>Edit Profile</Text>
@@ -157,8 +169,8 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   profileInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: HP(2),
   },
   profileImage: {
@@ -172,7 +184,7 @@ const styles = StyleSheet.create({
   },
   profileName: {
     fontSize: fontSize(18),
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.dark,
     marginBottom: HP(0.5),
   },
@@ -185,12 +197,12 @@ const styles = StyleSheet.create({
     paddingVertical: HP(1.5),
     paddingHorizontal: WP(6),
     borderRadius: fontSize(20),
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   editButtonText: {
     color: colors.white,
     fontSize: fontSize(14),
-    fontWeight: '500',
+    fontWeight: "500",
   },
   menuSection: {
     backgroundColor: colors.surface,
@@ -206,22 +218,22 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   menuItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: HP(2),
     paddingHorizontal: WP(5),
   },
   menuItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   menuItemText: {
     fontSize: fontSize(16),
     color: colors.dark,
     marginLeft: WP(4),
-    fontWeight: '500',
+    fontWeight: "500",
   },
   separator: {
     height: 1,
@@ -229,7 +241,7 @@ const styles = StyleSheet.create({
     marginHorizontal: WP(5),
   },
   appVersion: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: fontSize(12),
     color: colors.placeholder,
     marginVertical: HP(3),
