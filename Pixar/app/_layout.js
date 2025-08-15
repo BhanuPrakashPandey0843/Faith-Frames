@@ -3,7 +3,7 @@ import React from "react";
 import { Stack } from "expo-router";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import TabNavigation from "../navigation/tab-navigation";
+
 const Layout = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -23,9 +23,7 @@ const Layout = () => {
           <Stack.Screen name="auth/forgot-password" />
 
           {/* Home */}
-          {/* `home/index.js` renders at /home */}
           <Stack.Screen name="home/index" />
-          {/* Image preview as a transparent modal */}
           <Stack.Screen
             name="home/image"
             options={{
@@ -33,14 +31,12 @@ const Layout = () => {
               animation: "fade",
             }}
           />
-          {/* Payment (nested under home/payment/index.js) */}
           <Stack.Screen
             name="home/payment/index"
             options={{ presentation: "modal" }}
           />
 
           {/* Favourite */}
-          {/* File is index.jsx, so route is /favourite/FavouriteScreen */}
           <Stack.Screen name="favourite/FavouriteScreen" />
 
           {/* Profile */}
@@ -52,11 +48,9 @@ const Layout = () => {
           {/* Quiz */}
           <Stack.Screen name="quiz/QuizScreen" />
           <Stack.Screen name="quiz/QuizQuestionScreen" />
-          {/* If this is a helper view you push, keep it hidden header too */}
           <Stack.Screen name="quiz/ProgressOpacity" />
 
           {/* Wallpaper */}
-          {/* If you navigate to /wallpaper (index.js) */}
           <Stack.Screen name="wallpaper/index" />
           <Stack.Screen name="wallpaper/WallpaperListScreen" />
           <Stack.Screen
@@ -67,7 +61,11 @@ const Layout = () => {
             }}
           />
 
-          {/* ReactNav playground (if you still use it) */}
+          {/* Legal Pages */}
+          <Stack.Screen name="legal/terms-and-conditions" />
+          <Stack.Screen name="legal/privacy-policy" />
+
+          {/* ReactNav playground */}
           <Stack.Screen name="reactnav/index" />
         </Stack>
       </BottomSheetModalProvider>
