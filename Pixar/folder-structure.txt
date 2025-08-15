@@ -6,14 +6,15 @@ E:.
 |   babel.config.js
 |   expo-env.d.ts
 |   folder-structure.txt
-|   folder.txt
 |   package.json
 |   README.md
 |   tsconfig.json
 |   
 +---.expo
 |   |   devices.json
+|   |   packager-info.json
 |   |   README.md
+|   |   settings.json
 |   |   
 |   +---types
 |   |       router.d.ts
@@ -45,7 +46,7 @@ E:.
 |   |       user.js
 |   |       
 |   +---favourite
-|   |       FavouriteScreen.jsx
+|   |       index.js
 |   |       
 |   +---home
 |   |   |   image.js
@@ -55,19 +56,20 @@ E:.
 |   |           index.js
 |   |           
 |   +---profile
-|   |       EditProfileScreen.jsx
+|   |       index.js
 |   |       
 |   +---quiz
-|   |       ProgressOpacity.jsx
-|   |       QuizQuestionScreen.jsx
-|   |       QuizScreen.jsx
+|   |       index.js
+|   |       ProgressOpacity.js
+|   |       QuizQuestionScreen.js
 |   |       
 |   +---reactnav
 |   |       index.js
 |   |       
 |   +---setting
-|   |       SettingScreen.jsx
+|   |       index.js
 |   |       
+|   +---tabs
 |   +---theme
 |   |       colors.js
 |   |       scale.js
@@ -78,9 +80,8 @@ E:.
 |   |       SnackbarUtils.js
 |   |       
 |   \---wallpaper
-|           index.js
-|           WallpaperDetailScreen.jsx
-|           WallpaperListScreen.jsx
+|           index.jsx
+|           WallpaperDetailScreen.js
 |           
 +---assets
 |   +---fonts
@@ -100,17 +101,18 @@ E:.
 |           welcome.png
 |           
 +---components
+|       bottomnav.js
 |       categories.js
-|       CustomBottomsheet.jsx
-|       CustomInputField.jsx
+|       CustomBottomsheet.js
+|       CustomInputField.js
 |       filterModals.js
-|       Icon.jsx
+|       Icon.js
 |       imageCard.js
 |       imagegrid.js
 |       sectionView.js
-|       StackCard.jsx
-|       StackCardItem.jsx
-|       TopBar.jsx
+|       StackCard.js
+|       StackCardItem.js
+|       TopBar.js
 |       
 +---constants
 |       data.js
@@ -125,11 +127,10 @@ E:.
 |       useThemeColor.ts
 |       
 +---navigation
+|       BottomTabs.js
 |       root-navigation.js
 |       tab-navigation.js
 |       
 \---scripts
         reset-project.js
         
-
-
