@@ -124,7 +124,7 @@ const SettingScreen = () => {
             </View>
           </View>
           <TouchableOpacity
-            onPress={() => router.push(ScreenConstants.EDIT_PROFILE_SCREEN)}
+         onPress={() => router.push("/profile")}
             style={styles.editButton}
           >
             <Text style={styles.editButtonText}>Edit Profile</Text>

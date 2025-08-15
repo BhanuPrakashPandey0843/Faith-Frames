@@ -5,20 +5,19 @@ import {
   ImageBackground,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
 } from 'react-native';
 import React, { useState } from 'react';
 import { data } from '../data/images';
 import Icon from '../../components/Icon';
 import { colors } from '../theme/colors';
 import { fontSize, HP, WP } from '../theme/scale';
-import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router'; // ✅ useRouter instead of useNavigation
 import { ScreenConstants } from '../utils/constant';
 import TopBar from '../../components/TopBar';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 const WallpaperListScreen = () => {
-  const navigation = useNavigation();
+  const router = useRouter(); // ✅ useRouter
   const [favorites, setFavorites] = useState(new Set());
 
   const toggleFavorite = id => {
@@ -36,16 +35,14 @@ const WallpaperListScreen = () => {
 
     return (
       <Animated.View
-        entering={FadeInDown.delay(index * 100)
-          .duration(700)
-          .springify()
-        }
+        entering={FadeInDown.delay(index * 100).duration(700).springify()}
       >
         <TouchableOpacity
           style={styles.itemContainer}
           onPress={() =>
-            navigation.navigate(ScreenConstants.WALLPAPER_DETAIL_SCREEN, {
-              item,
+            router.push({
+              pathname: ScreenConstants.WALLPAPER_DETAIL_SCREEN, // e.g., "/wallpaper/WallpaperDetailScreen"
+              params: { item }, // pass selected wallpaper
             })
           }
         >

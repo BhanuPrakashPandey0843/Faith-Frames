@@ -1,4 +1,3 @@
-// components/StackCardItem.js
 import {
   View,
   Text,
@@ -7,8 +6,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import Animated,
-{
+import Animated, {
   Extrapolate,
   interpolate,
   useAnimatedStyle,
@@ -22,11 +20,11 @@ import Icon from "./Icon";
 import { data } from "../app/data/images";
 import { fontSize, HP, WP } from "../app/theme/scale";
 import { colors } from "../app/theme/colors";
-import { useRouter } from "expo-router"; // ✅ Changed from useNavigation
+import { useRouter } from "expo-router";
 import { ScreenConstants } from "../app/utils/constant";
 
 const StackCardItem = ({ item, index, actualIndex, setActualIndex }) => {
-  const router = useRouter(); // ✅ expo-router navigation
+  const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(false);
   const position = useSharedValue({ x: 0, y: 0 });
   const lastOffset = useSharedValue({ x: 0, y: 0 });
@@ -66,6 +64,7 @@ const StackCardItem = ({ item, index, actualIndex, setActualIndex }) => {
       Extrapolate.CLAMP
     );
   });
+
   const additionalTranslate = useDerivedValue(() => {
     return interpolate(
       index,
@@ -74,6 +73,7 @@ const StackCardItem = ({ item, index, actualIndex, setActualIndex }) => {
       Extrapolate.CLAMP
     );
   });
+
   const scale = useDerivedValue(() => {
     return interpolate(
       index,
@@ -146,22 +146,21 @@ const StackCardItem = ({ item, index, actualIndex, setActualIndex }) => {
 
             {/* See More Button */}
             <TouchableOpacity
-              onPress={() => router.push(ScreenConstants.WALLPAPER_LIST_SCREEN)} // ✅ changed
-              style={styles.seeMoreButton}
-            >
-              <Text
-                style={[styles.seeMoreText, { flex: 1, textAlign: "center" }]}
-              >
-                See more
-              </Text>
-              <View style={styles.seeMoreIconContainer}>
-                <Icon
-                  name="ChevronRightIcon"
-                  size={fontSize(20)}
-                  color={colors.dark}
-                />
-              </View>
-            </TouchableOpacity>
+  onPress={() => router.push(ScreenConstants.WALLPAPER_LIST_SCREEN)}
+  style={styles.seeMoreButton}
+>
+  <Text style={[styles.seeMoreText, { flex: 1, textAlign: "center" }]}>
+    See more
+  </Text>
+  <View style={styles.seeMoreIconContainer}>
+    <Icon
+      name="ChevronRightIcon"
+      size={fontSize(20)}
+      color={colors.dark}
+    />
+  </View>
+</TouchableOpacity>
+
           </View>
         </ImageBackground>
       </Animated.View>
