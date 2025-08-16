@@ -61,14 +61,15 @@ const SettingScreen = () => {
           id: 7,
           title: "Contact Us",
           icon: "TrashIcon",
-          onPress: () => console.log("Contact pressed"),
+         onPress: () => router.push("/contact-us"), 
         },
-        {
-          id: 8,
-          title: "Rate & Share App",
-          icon: "ClockIcon",
-          onPress: () => console.log("Rate pressed"),
-        },
+       {
+  id: 8,
+  title: "Rate & Share App",
+  icon: "ClockIcon",
+  onPress: () => router.push("/rate-app"),
+},
+
         {
           id: 9,
           title: "Logout",

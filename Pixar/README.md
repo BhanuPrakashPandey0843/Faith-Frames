@@ -54,3 +54,7 @@ Join our community of developers creating universal apps.
 
 
 
+
+git add .
+git commit -m"added the quiz page contact us and rate us page"
+git push origin main 

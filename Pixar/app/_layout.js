@@ -45,6 +45,12 @@ const Layout = () => {
           {/* Settings */}
           <Stack.Screen name="setting/SettingScreen" />
 
+          {/* Contact Us */}
+          <Stack.Screen name="contact-us/index" />
+
+          {/* Rate Our App */}
+          <Stack.Screen name="rate-app/index" />
+
           {/* Quiz */}
           <Stack.Screen name="quiz/QuizScreen" />
           <Stack.Screen name="quiz/QuizQuestionScreen" />
