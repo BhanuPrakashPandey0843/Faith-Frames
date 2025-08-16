@@ -1,29 +1,43 @@
+// E:\2025\Freelance\Faith-Frames\Pixar\app\wallpaper\[id].js
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  ImageBackground,
   Share,
   Image,
   NativeModules,
   TouchableOpacity,
-} from 'react-native';
-import React, { useState } from 'react';
-import Icon from '../../components/Icon';
-import { colors } from '../theme/colors';
-import { fontSize, HP, WP } from '../theme/scale';
-import TopBar from '../../components/TopBar';
-import CustomBottomsheet from '../../components/CustomBottomsheet';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import SnackbarUtils from '../utils/SnackbarUtils';
-import ProgressOpacity from '../quiz/ProgressOpacity';
-import { commonStyles } from '../utils/commonStyles';
+} from "react-native";
+import React, { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import Icon from "../../components/Icon";
+import { colors } from "../theme/colors";
+import { fontSize, HP, WP } from "../theme/scale";
+import TopBar from "../../components/TopBar";
+import CustomBottomsheet from "../../components/CustomBottomsheet";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import SnackbarUtils from "../utils/SnackbarUtils";
+import ProgressOpacity from "../quiz/ProgressOpacity";
+import { commonStyles } from "../utils/commonStyles";
 
 const { WallpaperManager } = NativeModules;
 
-const WallpaperDetailScreen = ({ route }) => {
-  const { item } = route.params;
+const WallpaperDetailScreen = () => {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+
+  // unpack item data with safe defaults
+  const item = {
+    id: params.id ?? "",
+    title: params.title ?? "Wallpaper",
+    uri: params.uri ?? "",
+    location: params.location ?? "Unknown",
+    country: params.country ?? "",
+    rating: params.rating ? parseFloat(params.rating) : 0,
+    reviews: params.reviews ? parseInt(params.reviews) : 0,
+  };
+
   const [isFavorite, setIsFavorite] = useState(false);
   const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
   const [isSettingWallpaper, setIsSettingWallpaper] = useState(false);
@@ -35,64 +49,72 @@ const WallpaperDetailScreen = ({ route }) => {
         url: item.uri,
       });
     } catch (error) {
-      SnackbarUtils.showError('Failed to share wallpaper');
+      SnackbarUtils.showError("Failed to share wallpaper");
     }
   };
 
   const handleSetAsWallpaper = () => {
+    if (!item.uri) {
+      SnackbarUtils.showError("Invalid wallpaper URI");
+      return;
+    }
     setBottomSheetVisible(true);
   };
 
-  const handleWallpaperOption = async option => {
+  const handleWallpaperOption = async (option) => {
     setBottomSheetVisible(false);
     setIsSettingWallpaper(true);
 
     let wallpaperType;
     switch (option) {
-      case 'Home Screen':
-        wallpaperType = 'home';
+      case "Home Screen":
+        wallpaperType = "home";
         break;
-      case 'Lock Screen':
-        wallpaperType = 'lock';
+      case "Lock Screen":
+        wallpaperType = "lock";
         break;
-      case 'Both':
-        wallpaperType = 'both';
+      case "Both":
+        wallpaperType = "both";
         break;
       default:
-        wallpaperType = 'home';
+        wallpaperType = "home";
     }
 
     try {
-      const result = await WallpaperManager.setWallpaper(
-        item.uri,
-        wallpaperType,
-      );
+      const result = await WallpaperManager.setWallpaper(item.uri, wallpaperType);
       setIsSettingWallpaper(false);
 
-      if (result.status === 'success') {
+      if (result?.status === "success") {
         SnackbarUtils.showInfo(result.message);
       } else {
-        SnackbarUtils.showError(result.message);
+        SnackbarUtils.showError(result?.message || "Failed to apply wallpaper");
       }
     } catch (error) {
       setIsSettingWallpaper(false);
-      SnackbarUtils.showError('Failed to set wallpaper: ' + error.message);
+      SnackbarUtils.showError("Failed to set wallpaper: " + error.message);
     }
   };
 
   return (
     <View style={styles.container}>
-      <TopBar title={item.title} />
+      <TopBar title={item.title} onBack={() => router.back()} />
+
       <View style={styles.contentWrapper}>
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Wallpaper Image */}
           <View style={styles.imageContainer}>
-            <Image source={{ uri: item.uri }} style={styles.wallpaperImage} />
+            {item.uri ? (
+              <Image source={{ uri: item.uri }} style={styles.wallpaperImage} />
+            ) : (
+              <View style={[styles.wallpaperImage, styles.imagePlaceholder]}>
+                <Text style={{ color: colors.placeholder }}>No Image</Text>
+              </View>
+            )}
           </View>
 
           {/* Content */}
           <View style={styles.content}>
-            {/* Title and Description */}
+            {/* Title and Favorite */}
             <View style={styles.titleSection}>
               <View style={styles.titleContainer}>
                 <Text style={styles.title}>{item.title}</Text>
@@ -101,7 +123,7 @@ const WallpaperDetailScreen = ({ route }) => {
                     name="HeartIcon"
                     size={fontSize(30)}
                     color={isFavorite ? colors.favourite : colors.dark}
-                    variant={isFavorite ? 'solid' : 'outline'}
+                    variant={isFavorite ? "solid" : "outline"}
                   />
                 </TouchableOpacity>
               </View>
@@ -117,18 +139,21 @@ const WallpaperDetailScreen = ({ route }) => {
                   color={colors.dark}
                   variant="outline"
                 />
-                <Text style={styles.ratingText}>{item.rating}</Text>
-                <Text style={styles.reviewsText}>({item.reviews} reviews)</Text>
+                <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
+                <Text style={styles.reviewsText}>
+                  ({item.reviews} reviews)
+                </Text>
               </View>
             </View>
           </View>
         </ScrollView>
       </View>
+
+      {/* Action Buttons */}
       <Animated.View
         entering={FadeInDown.delay(300).duration(700).springify()}
         style={styles.actionButtons}
       >
-        {/* Use ProgressOpacity for Share button */}
         <ProgressOpacity
           style={[commonStyles.secondaryBtn, { flex: 1 }]}
           txtStyle={{ color: colors.dark }}
@@ -138,9 +163,11 @@ const WallpaperDetailScreen = ({ route }) => {
         <ProgressOpacity
           style={[commonStyles.primaryBtn, { flex: 4 }]}
           onPress={handleSetAsWallpaper}
-          title="Apply"
+          title={isSettingWallpaper ? "Applying..." : "Apply"}
         />
       </Animated.View>
+
+      {/* Bottom Sheet */}
       <CustomBottomsheet
         visible={bottomSheetVisible}
         onClose={() => setBottomSheetVisible(false)}
@@ -149,17 +176,17 @@ const WallpaperDetailScreen = ({ route }) => {
         <View style={styles.sheetOptions}>
           <ProgressOpacity
             style={commonStyles.primaryBtn}
-            onPress={() => handleWallpaperOption('Home Screen')}
+            onPress={() => handleWallpaperOption("Home Screen")}
             title="Set as Home Screen"
           />
           <ProgressOpacity
             style={commonStyles.primaryBtn}
-            onPress={() => handleWallpaperOption('Lock Screen')}
+            onPress={() => handleWallpaperOption("Lock Screen")}
             title="Set as Lock Screen"
           />
           <ProgressOpacity
             style={commonStyles.primaryBtn}
-            onPress={() => handleWallpaperOption('Both')}
+            onPress={() => handleWallpaperOption("Both")}
             title="Set Both"
             txtStyle={styles.sheetButtonText}
           />
@@ -172,37 +199,36 @@ const WallpaperDetailScreen = ({ route }) => {
 export default WallpaperDetailScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contentWrapper: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  contentWrapper: { flex: 1 },
   imageContainer: {
     marginHorizontal: WP(5),
     marginBottom: HP(2),
   },
   wallpaperImage: {
-    width: '100%',
+    width: "100%",
     height: HP(60),
     borderRadius: WP(4),
+  },
+  imagePlaceholder: {
+    backgroundColor: colors.lightGrey,
+    justifyContent: "center",
+    alignItems: "center",
   },
   content: {
     paddingHorizontal: WP(5),
     paddingBottom: HP(3),
   },
-  titleSection: {
-    marginBottom: HP(3),
-  },
+  titleSection: { marginBottom: HP(3) },
   titleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: HP(1),
   },
   title: {
     fontSize: fontSize(24),
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.dark,
     flex: 1,
   },
@@ -212,13 +238,13 @@ const styles = StyleSheet.create({
     marginBottom: HP(1.5),
   },
   ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: WP(1),
   },
   ratingText: {
     fontSize: fontSize(14),
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.dark,
   },
   reviewsText: {
@@ -226,12 +252,11 @@ const styles = StyleSheet.create({
     color: colors.placeholder,
   },
   actionButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: WP(3),
     marginHorizontal: WP(5),
     marginBottom: HP(2),
   },
-  sheetOptions: {
-    gap: HP(2),
-  },
+  sheetOptions: { gap: HP(2) },
+  sheetButtonText: { color: colors.white },
 });

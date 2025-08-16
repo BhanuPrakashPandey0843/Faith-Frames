@@ -1,3 +1,4 @@
+// E:\2025\Freelance\Faith-Frames\Pixar\app\wallpaper\index.js
 import {
   View,
   Text,
@@ -11,13 +12,12 @@ import { data } from '../data/images';
 import Icon from '../../components/Icon';
 import { colors } from '../theme/colors';
 import { fontSize, HP, WP } from '../theme/scale';
-import { useRouter } from 'expo-router'; // ✅ useRouter instead of useNavigation
-import { ScreenConstants } from '../utils/constant';
+import { useRouter } from 'expo-router';
 import TopBar from '../../components/TopBar';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 const WallpaperListScreen = () => {
-  const router = useRouter(); // ✅ useRouter
+  const router = useRouter();
   const [favorites, setFavorites] = useState(new Set());
 
   const toggleFavorite = id => {
@@ -41,8 +41,8 @@ const WallpaperListScreen = () => {
           style={styles.itemContainer}
           onPress={() =>
             router.push({
-              pathname: ScreenConstants.WALLPAPER_DETAIL_SCREEN, // e.g., "/wallpaper/WallpaperDetailScreen"
-              params: { item }, // pass selected wallpaper
+              pathname: '/wallpaper/[id]', // ✅ matches app/wallpaper/[id].js
+              params: { ...item }, // pass all wallpaper data as params
             })
           }
         >
@@ -137,7 +137,3 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
 });
-
-
-
- 

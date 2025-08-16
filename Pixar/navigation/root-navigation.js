@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import TabNavigation from './tab-navigation';
 import { ScreenConstants } from '../app/utils/constant';
 import WallpaperListScreen from '../app/wallpaper/index';
-import WallpaperDetailScreen from '../app/wallpaper/WallpaperDetailScreen';
+
 import EditProfileScreen from '../app/profile/index';
 import QuizQuestionScreen from '../app/quiz/QuizQuestionScreen';
 

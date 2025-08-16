@@ -55,6 +55,7 @@ const Layout = () => {
           <Stack.Screen name="quiz/QuizScreen" />
           <Stack.Screen name="quiz/QuizQuestionScreen" />
           <Stack.Screen name="quiz/ProgressOpacity" />
+          <Stack.Screen name="quiz/ThanksScreen" />   {/* ✅ Added new Thanks screen */}
 
           {/* Wallpaper */}
           <Stack.Screen name="wallpaper/index" />

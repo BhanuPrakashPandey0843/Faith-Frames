@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,18 +6,18 @@ import {
   StatusBar,
   TouchableOpacity,
   Animated,
-} from 'react-native';
-import Icon from '../../components/Icon';
-import { fontSize, HP, WP } from '../theme/scale';
-import TopBar from '../../components/TopBar';
-import ProgressOpacity from './ProgressOpacity';
-import CustomBottomsheet from '../../components/CustomBottomsheet';
-import { commonStyles } from '../utils/commonStyles';
-import { ScreenConstants } from '../utils/constant';
+} from "react-native";
+import Icon from "../../components/Icon";
+import { fontSize, HP, WP } from "../theme/scale";
+import TopBar from "../../components/TopBar";
+import ProgressOpacity from "./ProgressOpacity";
+import CustomBottomsheet from "../../components/CustomBottomsheet";
+import { commonStyles } from "../utils/commonStyles";
+import { useRouter } from "expo-router"; // ✅ import router
 
 const colorsBW = {
-  black: '#000',
-  white: '#fff',
+  black: "#000",
+  white: "#fff",
 };
 
 const DifficultyButton = ({ icon, label, isSelected, onPress }) => {
@@ -66,11 +66,11 @@ const DifficultyButton = ({ icon, label, isSelected, onPress }) => {
   );
 };
 
-const QuizScreen = ({ navigation }) => {
+const QuizScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [difficulty, setDifficulty] = useState('Medium');
-
+  const [difficulty, setDifficulty] = useState("Medium");
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const router = useRouter(); // ✅ use router
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -82,8 +82,9 @@ const QuizScreen = ({ navigation }) => {
 
   const handleStartQuiz = () => {
     setModalVisible(false);
-    setDifficulty('Medium');
-    navigation.navigate(ScreenConstants.QUIZ_QUESTION_SCREEN);
+    setDifficulty("Medium");
+    // ✅ Navigate to the quiz question screen
+    router.push("/quiz/QuizQuestionScreen");
   };
 
   return (
@@ -104,7 +105,7 @@ const QuizScreen = ({ navigation }) => {
           onPress={() => setModalVisible(true)}
           title="Start Quiz"
           style={styles.startButton}
-          icon={'AcademicCapIcon'}
+          icon={"AcademicCapIcon"}
         />
 
         <Text style={styles.disclaimer}>
@@ -122,20 +123,20 @@ const QuizScreen = ({ navigation }) => {
           <DifficultyButton
             icon="RocketLaunchIcon"
             label="Easy"
-            isSelected={difficulty === 'Easy'}
-            onPress={() => setDifficulty('Easy')}
+            isSelected={difficulty === "Easy"}
+            onPress={() => setDifficulty("Easy")}
           />
           <DifficultyButton
             icon="BookOpenIcon"
             label="Medium"
-            isSelected={difficulty === 'Medium'}
-            onPress={() => setDifficulty('Medium')}
+            isSelected={difficulty === "Medium"}
+            onPress={() => setDifficulty("Medium")}
           />
           <DifficultyButton
             icon="AcademicCapIcon"
             label="Hard"
-            isSelected={difficulty === 'Hard'}
-            onPress={() => setDifficulty('Hard')}
+            isSelected={difficulty === "Hard"}
+            onPress={() => setDifficulty("Hard")}
           />
         </View>
         <ProgressOpacity
@@ -145,7 +146,7 @@ const QuizScreen = ({ navigation }) => {
             commonStyles.primaryBtnSmall,
             { backgroundColor: colorsBW.black },
           ]}
-          icon={'FireIcon'}
+          icon={"FireIcon"}
         />
       </CustomBottomsheet>
     </View>
@@ -156,13 +157,13 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colorsBW.black },
   content: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: HP(6),
     marginHorizontal: WP(5),
   },
   title: {
     fontSize: fontSize(40),
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colorsBW.white,
     marginTop: HP(2.5),
   },
@@ -170,22 +171,22 @@ const styles = StyleSheet.create({
     fontSize: fontSize(20),
     color: colorsBW.white,
     marginTop: HP(1),
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: HP(4),
   },
   iconCircle: {
     backgroundColor: colorsBW.black,
     borderRadius: 99,
     padding: WP(4),
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: HP(6),
     borderWidth: 2,
     borderColor: colorsBW.white,
   },
   startButton: {
-    flexDirection: 'row',
-    backgroundColor: '#fff2',
+    flexDirection: "row",
+    backgroundColor: "#fff2",
     paddingVertical: HP(2),
     paddingHorizontal: WP(8),
     borderWidth: 1,
@@ -194,21 +195,21 @@ const styles = StyleSheet.create({
     marginTop: HP(6),
   },
   disclaimer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
     fontSize: fontSize(12),
     color: colorsBW.white,
-    textAlign: 'center',
+    textAlign: "center",
     paddingHorizontal: WP(5),
   },
   difficultyContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
     marginVertical: HP(2),
   },
   difficultyBtn: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: WP(4),
     borderRadius: WP(3),
     borderWidth: 1,
