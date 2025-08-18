@@ -7,6 +7,9 @@ import {
   ScrollView,
   TextInput,
   Image,
+  Animated,
+  Easing,
+  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -22,20 +25,23 @@ import StackCard from "../../components/StackCard";
 import FiltersModel from "../../components/filterModals";
 import { apiCall } from "../../api";
 
-// ✅ Local theme fallback so no undefined errors
 const theme = {
   colors: {
     white: "#FFFFFF",
-    grayBG: "#F0F0F0",
+    black: "#000000",
+    primary: "#FFD700", // premium gold
+    grayBG: "#F5F5F5",
     neutral: (opacity) => `rgba(0,0,0,${opacity})`,
   },
   fontWeights: {
     medium: "500",
     semibold: "600",
+    bold: "700",
   },
   radius: {
     sm: 6,
     lg: 12,
+    xl: 20,
   },
 };
 
@@ -64,8 +70,20 @@ const HomeScreen = () => {
   const scrollRef = useRef(null);
   const router = useRouter();
 
+  // 🔥 Animations
+  const searchAnim = useRef(new Animated.Value(-50)).current;
+  const profileAnim = useRef(new Animated.Value(1)).current;
+  const tabScale = useRef({}).current;
+
   useEffect(() => {
     fetchImages();
+    // Animate search bar on mount
+    Animated.timing(searchAnim, {
+      toValue: 0,
+      duration: 600,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    }).start();
   }, []);
 
   const fetchImages = async (params = {}, append = true) => {
@@ -134,6 +152,22 @@ const HomeScreen = () => {
 
   const handleTabPress = (tabId, route) => {
     setActiveTab(tabId);
+    if (!tabScale[tabId]) tabScale[tabId] = new Animated.Value(1);
+
+    // bounce animation
+    Animated.sequence([
+      Animated.timing(tabScale[tabId], {
+        toValue: 1.2,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(tabScale[tabId], {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     router.push(route);
   };
 
@@ -142,18 +176,38 @@ const HomeScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.userName}>Hello, John Doe</Text>
+          <Text style={styles.userName}>Hello, John Doe </Text>
           <Text style={styles.welcomeText}>Welcome To Faith Frames</Text>
         </View>
-        <Pressable onPress={() => router.push("/profile")}>
-          <View style={styles.profileImageContainer}>
+        <Pressable
+          onPressIn={() =>
+            Animated.spring(profileAnim, {
+              toValue: 0.9,
+              useNativeDriver: true,
+            }).start()
+          }
+          onPressOut={() =>
+            Animated.spring(profileAnim, {
+              toValue: 1,
+              friction: 3,
+              useNativeDriver: true,
+            }).start()
+          }
+          onPress={() => router.push("/profile")}
+        >
+          <Animated.View
+            style={[
+              styles.profileImageContainer,
+              { transform: [{ scale: profileAnim }] },
+            ]}
+          >
             <Image
               source={{
                 uri: "https://img.freepik.com/premium-photo/young-professional-man-suit-smiling_605022-20977.jpg",
               }}
               style={styles.profileImage}
             />
-          </View>
+          </Animated.View>
         </Pressable>
       </View>
 
@@ -161,32 +215,38 @@ const HomeScreen = () => {
         onScroll={handleScroll}
         scrollEventThrottle={5}
         ref={scrollRef}
-        contentContainerStyle={{ gap: 15, paddingBottom: hp(12) }}
+        contentContainerStyle={{
+          gap: 15,
+          paddingBottom: hp(12),
+          backgroundColor: theme.colors.grayBG,
+        }}
       >
-        {/* Search bar */}
-        <View style={styles.searchBar}>
-          <Feather
-            name="search"
-            size={22}
-            color={theme.colors.neutral(0.4)}
-            style={styles.searchIcon}
-          />
-          <TextInput
-            placeholder="Search for Images"
-            ref={searchInputRef}
-            onChangeText={handleTextDebounce}
-            value={search}
-            style={styles.searchInput}
-          />
-          {search ? (
-            <Pressable onPress={() => handleSearch("")} style={styles.closeIcon}>
-              <Ionicons name="close" size={20} color={theme.colors.neutral(0.6)} />
-            </Pressable>
-          ) : null}
-        </View>
+        {/* Animated Search Bar */}
+        <Animated.View style={{ transform: [{ translateY: searchAnim }] }}>
+          <View style={styles.searchBar}>
+            <Feather
+              name="search"
+              size={22}
+              color={theme.colors.neutral(0.4)}
+              style={styles.searchIcon}
+            />
+            <TextInput
+              placeholder="Search for Images..."
+              ref={searchInputRef}
+              onChangeText={handleTextDebounce}
+              value={search}
+              style={styles.searchInput}
+            />
+            {search ? (
+              <Pressable onPress={() => handleSearch("")} style={styles.closeIcon}>
+                <Ionicons name="close" size={20} color={theme.colors.neutral(0.6)} />
+              </Pressable>
+            ) : null}
+          </View>
+        </Animated.View>
 
         {/* Image Stack */}
-        <StackCard images={images} />
+        <StackCard images={images} fadeIn />
       </ScrollView>
 
       {/* Filter modal */}
@@ -203,19 +263,23 @@ const HomeScreen = () => {
       <View style={styles.floatingBottomNav}>
         {tabs.map(({ id, icon, lib: IconLib, route }) => {
           const isActive = activeTab === id;
+          if (!tabScale[id]) tabScale[id] = new Animated.Value(1);
+
           return (
-            <Pressable
-              key={id}
-              style={styles.navItem}
-              onPress={() => handleTabPress(id, route)}
-            >
-              <View style={[styles.iconWrapper, isActive && styles.activeIcon]}>
+            <Pressable key={id} onPress={() => handleTabPress(id, route)}>
+              <Animated.View
+                style={[
+                  styles.iconWrapper,
+                  isActive && styles.activeIcon,
+                  { transform: [{ scale: tabScale[id] }] },
+                ]}
+              >
                 <IconLib
                   name={icon}
                   size={24}
-                  color={isActive ? "#000" : "#fff"}
+                  color={isActive ? theme.colors.black : "#fff"}
                 />
-              </View>
+              </Animated.View>
             </Pressable>
           );
         })}
@@ -232,48 +296,53 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: wp(4),
     paddingVertical: hp(2),
+    backgroundColor: "#fff",
   },
   userName: {
-    fontSize: hp(2.4),
+    fontSize: hp(2.2),
     fontWeight: theme.fontWeights.medium,
-    color: theme.colors.neutral(0.7),
+    color: theme.colors.neutral(0.6),
   },
   welcomeText: {
-    fontSize: hp(2.8),
-    fontWeight: theme.fontWeights.semibold,
-    color: theme.colors.neutral(0.9),
+    fontSize: hp(2.6),
+    fontWeight: theme.fontWeights.bold,
+    color: theme.colors.black,
   },
   profileImageContainer: {
     width: hp(6),
     height: hp(6),
     borderRadius: hp(3),
     overflow: "hidden",
-    borderWidth: 1,
-    borderColor: theme.colors.grayBG,
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+    shadowColor: theme.colors.primary,
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 10,
   },
   profileImage: { width: "100%", height: "100%", resizeMode: "cover" },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: theme.colors.white,
-    borderRadius: theme.radius.lg,
+    borderRadius: theme.radius.xl,
     borderWidth: 1,
     borderColor: theme.colors.grayBG,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     marginHorizontal: wp(4),
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 5,
+    elevation: 4,
   },
   searchIcon: { marginRight: 6 },
   searchInput: {
     flex: 1,
-    fontSize: hp(1.9),
+    fontSize: hp(2),
     color: theme.colors.neutral(0.9),
-    paddingVertical: 6,
   },
   closeIcon: {
     backgroundColor: theme.colors.grayBG,
@@ -286,18 +355,17 @@ const styles = StyleSheet.create({
     left: wp(5),
     right: wp(5),
     height: hp(8),
-    backgroundColor: "#000",
-    borderRadius: hp(3.5),
+    backgroundColor: "rgba(0,0,0,0.85)",
+    borderRadius: hp(4),
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 12,
   },
-  navItem: { flex: 1, alignItems: "center", justifyContent: "center" },
   iconWrapper: {
     padding: 10,
     borderRadius: 30,
@@ -313,5 +381,3 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
-
-

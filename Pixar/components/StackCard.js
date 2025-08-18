@@ -1,3 +1,4 @@
+// E:\2025\Freelance\Faith-Frames\Pixar\components\StackCard.js
 import { View, Text, ImageBackground, StyleSheet } from 'react-native';
 import React, { useState } from 'react';
 import StackCardItem from './StackCardItem';

@@ -1,3 +1,4 @@
+// E:\2025\Freelance\Faith-Frames\Pixar\app\rate-app\index.js
 import React, { useState, useRef } from "react";
 import {
   View,
