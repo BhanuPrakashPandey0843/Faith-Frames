@@ -91,47 +91,48 @@ const QuizQuestionScreen = () => { // ❗️don’t rely on navigation prop
         <Icon name="ArrowLeftIcon" color="#fff" size={22} />
       </TouchableOpacity>
 
-      <ScrollView contentContainerStyle={styles.mainContent}>
-        {/* Timer */}
-        <View style={styles.timerWrapper}>
-          <Animated.View style={styles.timerCircle}>
-            <Text style={styles.timerText}>{timeLeft}</Text>
-          </Animated.View>
-        </View>
+      <ScrollView
+  contentContainerStyle={{ flexGrow: 1, paddingTop: HP(4), paddingHorizontal: WP(5), paddingBottom: HP(12) }}
+  showsVerticalScrollIndicator={false}
+>
+  {/* Timer */}
+  <View style={styles.timerWrapper}>
+    <View style={styles.timerCircle}>
+      <Text style={styles.timerText}>{timeLeft}</Text>
+    </View>
+  </View>
 
-        {/* Question */}
-        <Text style={styles.questionCounter}>
-          Question {currentQuestionIndex + 1} / {quizData.length}
-        </Text>
-        <Text style={styles.questionText}>{currentQuestion.question}</Text>
+  {/* Question */}
+  <Text style={styles.questionCounter}>
+    Question {currentQuestionIndex + 1} / {quizData.length}
+  </Text>
+  <Text style={styles.questionText}>{currentQuestion.question}</Text>
 
-        {/* Options */}
-        <View style={styles.optionsContainer}>
-          {currentQuestion.options.map((option, index) => (
-            <TouchableOpacity
-              key={index}
-              style={getOptionStyle(index)}
-              onPress={() => handleOptionPress(index)}
-              disabled={isAnswered}
-              activeOpacity={0.85}
-              onPressIn={() => Animated.spring(scaleAnim, { toValue: 0.95, useNativeDriver: true }).start()}
-              onPressOut={() => Animated.spring(scaleAnim, { toValue: 1, friction: 3, useNativeDriver: true }).start()}
-            >
-              <BlurView intensity={40} tint="dark" style={styles.blurBox}>
-                {getOptionIcon(index)}
-                <Text style={styles.optionText}>{option}</Text>
-              </BlurView>
-            </TouchableOpacity>
-          ))}
-        </View>
+  {/* Options */}
+  <View style={styles.optionsContainer}>
+    {currentQuestion.options.map((option, index) => (
+      <TouchableOpacity
+        key={index}
+        style={getOptionStyle(index)}
+        onPress={() => handleOptionPress(index)}
+        disabled={isAnswered}
+        activeOpacity={0.85}
+      >
+        <BlurView intensity={40} tint="dark" style={{ flexDirection: 'row', alignItems: 'center', padding: HP(2), borderRadius: WP(6) }}>
+          {getOptionIcon(index)}
+          <Text style={styles.optionText}>{option}</Text>
+        </BlurView>
+      </TouchableOpacity>
+    ))}
+  </View>
 
-        {/* Explanation */}
-        {isAnswered && (
-          <Animated.View style={[styles.explanationBox, { opacity: fadeAnim, transform: [{ scale: fadeAnim }] }]}>
-            <Text style={styles.explanationText}>{currentQuestion.explanation}</Text>
-          </Animated.View>
-        )}
-      </ScrollView>
+  {/* Explanation */}
+  {isAnswered && (
+    <Animated.View style={{ opacity: fadeAnim, marginTop: HP(2) }}>
+      <Text style={styles.explanationText}>{currentQuestion.explanation}</Text>
+    </Animated.View>
+  )}
+</ScrollView>
 
       {/* Bottom Bar */}
       <View style={styles.bottomBar}>

@@ -1,4 +1,4 @@
-//Faith-Frames\Pixar\app\auth\login.js
+// Faith-Frames\Pixar\app\auth\login.js
 import React, { useState } from "react";
 import {
   View,
@@ -7,7 +7,7 @@ import {
   Image,
   Pressable,
   TextInput,
-  Linking,
+  Alert,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { LinearGradient } from "expo-linear-gradient";
@@ -16,26 +16,44 @@ import { useRouter } from "expo-router";
 import { hp, wp } from "../../helpers/common";
 import { theme } from "../../constants/theme";
 
+// ✅ Import Firebase auth
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../config/firebase";
+
 const LoginScreen = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    console.log("Logging in with", email, password);
-    router.push("home");
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter email and password");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log("✅ Logged in:", userCredential.user.email);
+
+      Alert.alert("Success", "Login successful!");
+      router.push("/home"); // redirect to your home page
+    } catch (error) {
+      console.error("❌ Login error:", error.message);
+      Alert.alert("Login Failed", error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogleLogin = () => {
     console.log("Initiating Google login...");
-    // Implement Google auth with Firebase/Expo AuthSession/etc.
+    // 👉 Next step: Implement Google auth with Firebase + Expo AuthSession
   };
 
   const handleForgotPassword = () => {
-    // Optional: redirect to reset screen or external link
-    console.log("Forgot password pressed");
-    router.push("/auth/forgot-password"); // if you have that route
-    // or use: Linking.openURL("https://yourdomain.com/forgot");
+    router.push("/auth/forgot-password");
   };
 
   return (
@@ -85,6 +103,7 @@ const LoginScreen = () => {
               keyboardType="email-address"
               value={email}
               onChangeText={setEmail}
+              autoCapitalize="none"
             />
             <TextInput
               placeholder="Password"
@@ -100,8 +119,14 @@ const LoginScreen = () => {
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(600).springify()}>
-            <Pressable onPress={handleLogin} style={styles.loginButton}>
-              <Text style={styles.loginText}>Log In</Text>
+            <Pressable
+              onPress={handleLogin}
+              style={[styles.loginButton, loading && { opacity: 0.6 }]}
+              disabled={loading}
+            >
+              <Text style={styles.loginText}>
+                {loading ? "Logging in..." : "Log In"}
+              </Text>
             </Pressable>
           </Animated.View>
 

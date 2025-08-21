@@ -17,11 +17,7 @@ const ThanksScreen = ({ route }) => {
       style={styles.container}
     >
       <Text style={styles.thankText}> Thank You!</Text>
-      <Text style={styles.scoreText}>
-        You scored <Text style={styles.highlight}>{score}</Text> /{" "}
-        <Text style={styles.highlight}>{total}</Text>
-      </Text>
-
+    
       <TouchableOpacity
         style={styles.button}
         onPress={() => router.replace("/home")

@@ -9,7 +9,6 @@ import {
   Image,
   Animated,
   Easing,
-  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -25,11 +24,15 @@ import StackCard from "../../components/StackCard";
 import FiltersModel from "../../components/filterModals";
 import { apiCall } from "../../api";
 
+// 🔥 import Firebase
+import { auth, db } from "../../config/firebase";
+import { doc, onSnapshot } from "firebase/firestore";
+
 const theme = {
   colors: {
     white: "#FFFFFF",
     black: "#000000",
-    primary: "#FFD700", // premium gold
+    primary: "#FFD700",
     grayBG: "#F5F5F5",
     neutral: (opacity) => `rgba(0,0,0,${opacity})`,
   },
@@ -65,6 +68,9 @@ const HomeScreen = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [isEndReached, setIsEndReached] = useState(false);
 
+  // 🔥 user state
+  const [user, setUser] = useState(null);
+
   const searchInputRef = useRef(null);
   const modelRef = useRef(null);
   const scrollRef = useRef(null);
@@ -75,9 +81,26 @@ const HomeScreen = () => {
   const profileAnim = useRef(new Animated.Value(1)).current;
   const tabScale = useRef({}).current;
 
+  // 👤 Load user from Firestore
+  useEffect(() => {
+    if (!auth.currentUser) return;
+    const unsub = onSnapshot(doc(db, "users", auth.currentUser.uid), (snap) => {
+      if (snap.exists()) {
+        setUser(snap.data());
+      } else {
+        // fallback to Firebase Auth
+        setUser({
+          name: auth.currentUser.displayName,
+          photoURL: auth.currentUser.photoURL,
+        });
+      }
+    });
+    return unsub;
+  }, []);
+
+  // Load images
   useEffect(() => {
     fetchImages();
-    // Animate search bar on mount
     Animated.timing(searchAnim, {
       toValue: 0,
       duration: 600,
@@ -95,7 +118,9 @@ const HomeScreen = () => {
           url: item.url,
           title: item.title,
         }));
-        setImages((prev) => (append ? [...prev, ...formattedImages] : formattedImages));
+        setImages((prev) =>
+          append ? [...prev, ...formattedImages] : formattedImages
+        );
       }
     } catch (err) {
       console.error("Image fetch error:", err);
@@ -107,7 +132,8 @@ const HomeScreen = () => {
     page = 1;
     setImages([]);
     setActiveCategory(null);
-    const params = text.length > 2 ? { page, q: text, ...filters } : { page, ...filters };
+    const params =
+      text.length > 2 ? { page, q: text, ...filters } : { page, ...filters };
     fetchImages(params, false);
   };
 
@@ -154,7 +180,6 @@ const HomeScreen = () => {
     setActiveTab(tabId);
     if (!tabScale[tabId]) tabScale[tabId] = new Animated.Value(1);
 
-    // bounce animation
     Animated.sequence([
       Animated.timing(tabScale[tabId], {
         toValue: 1.2,
@@ -176,7 +201,9 @@ const HomeScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.userName}>Hello, John Doe </Text>
+          <Text style={styles.userName}>
+            Hello, {user?.name || "Guest"}
+          </Text>
           <Text style={styles.welcomeText}>Welcome To Faith Frames</Text>
         </View>
         <Pressable
@@ -203,7 +230,9 @@ const HomeScreen = () => {
           >
             <Image
               source={{
-                uri: "https://img.freepik.com/premium-photo/young-professional-man-suit-smiling_605022-20977.jpg",
+                uri:
+                  user?.photoURL ||
+                  "https://placehold.co/200x200?text=Avatar",
               }}
               style={styles.profileImage}
             />
@@ -211,6 +240,7 @@ const HomeScreen = () => {
         </Pressable>
       </View>
 
+      {/* Rest of your code unchanged... */}
       <ScrollView
         onScroll={handleScroll}
         scrollEventThrottle={5}
@@ -221,7 +251,6 @@ const HomeScreen = () => {
           backgroundColor: theme.colors.grayBG,
         }}
       >
-        {/* Animated Search Bar */}
         <Animated.View style={{ transform: [{ translateY: searchAnim }] }}>
           <View style={styles.searchBar}>
             <Feather
@@ -238,18 +267,23 @@ const HomeScreen = () => {
               style={styles.searchInput}
             />
             {search ? (
-              <Pressable onPress={() => handleSearch("")} style={styles.closeIcon}>
-                <Ionicons name="close" size={20} color={theme.colors.neutral(0.6)} />
+              <Pressable
+                onPress={() => handleSearch("")}
+                style={styles.closeIcon}
+              >
+                <Ionicons
+                  name="close"
+                  size={20}
+                  color={theme.colors.neutral(0.6)}
+                />
               </Pressable>
             ) : null}
           </View>
         </Animated.View>
 
-        {/* Image Stack */}
         <StackCard images={images} fadeIn />
       </ScrollView>
 
-      {/* Filter modal */}
       <FiltersModel
         modelRef={modelRef}
         filters={filters}
@@ -259,7 +293,6 @@ const HomeScreen = () => {
         onReset={resetFilters}
       />
 
-      {/* Floating Bottom Navigation */}
       <View style={styles.floatingBottomNav}>
         {tabs.map(({ id, icon, lib: IconLib, route }) => {
           const isActive = activeTab === id;

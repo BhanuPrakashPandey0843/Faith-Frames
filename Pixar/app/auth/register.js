@@ -10,12 +10,30 @@ import {
   Alert,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import { hp, wp } from "../../helpers/common";
+
+// ✅ Firebase imports
+import { initializeApp } from "firebase/app";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+
+// ✅ Your Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyADSJhSL-mUkh_HsHr6r0InrPxoxMo7QPU",
+  authDomain: "wallpaper-c74a3.firebaseapp.com",
+  projectId: "wallpaper-c74a3",
+  storageBucket: "wallpaper-c74a3.appspot.com",
+  messagingSenderId: "704605252889",
+  appId: "1:704605252889:web:fd7d4f666da70d2aeda988",
+  measurementId: "G-CL5K9HN0NL",
+};
+
+// ✅ Initialize Firebase once
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -40,9 +58,20 @@ const RegisterScreen = () => {
     }
   }, [response]);
 
-  const handleSignup = () => {
-    console.log("Signing up with", email, password);
-    router.push("/auth/login");
+  // ✅ Handle Firebase Signup
+  const handleSignup = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter both email and password.");
+      return;
+    }
+
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      Alert.alert("Success", "Account created successfully!");
+      router.push("/auth/login"); // redirect to login after signup
+    } catch (error) {
+      Alert.alert("Signup Failed", error.message);
+    }
   };
 
   const evaluatePasswordStrength = (pass) => {
@@ -72,16 +101,28 @@ const RegisterScreen = () => {
       />
       <View style={styles.overlay} />
 
-      <Animated.View entering={FadeInDown.duration(600)} style={styles.contentContainer}>
-        <Animated.Text entering={FadeInDown.delay(300).springify()} style={styles.title}>
+      <Animated.View
+        entering={FadeInDown.duration(600)}
+        style={styles.contentContainer}
+      >
+        <Animated.Text
+          entering={FadeInDown.delay(300).springify()}
+          style={styles.title}
+        >
           Faith Frames
         </Animated.Text>
 
-        <Animated.Text entering={FadeInDown.delay(400).springify()} style={styles.subtitle}>
+        <Animated.Text
+          entering={FadeInDown.delay(400).springify()}
+          style={styles.subtitle}
+        >
           Create your account
         </Animated.Text>
 
-        <Animated.View entering={FadeInDown.delay(500).springify()} style={styles.inputWrapper}>
+        <Animated.View
+          entering={FadeInDown.delay(500).springify()}
+          style={styles.inputWrapper}
+        >
           <TextInput
             placeholder="Email"
             placeholderTextColor="#888"
@@ -121,7 +162,10 @@ const RegisterScreen = () => {
           )}
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(600).springify()} style={styles.buttonGroup}>
+        <Animated.View
+          entering={FadeInDown.delay(600).springify()}
+          style={styles.buttonGroup}
+        >
           <Pressable onPress={handleSignup} style={styles.signupButton}>
             <Text style={styles.buttonText}>Sign Up</Text>
           </Pressable>
@@ -135,7 +179,10 @@ const RegisterScreen = () => {
           </Pressable>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(700).springify()} style={styles.loginRedirect}>
+        <Animated.View
+          entering={FadeInDown.delay(700).springify()}
+          style={styles.loginRedirect}
+        >
           <Text style={styles.redirectText}>Already have an account?</Text>
           <Pressable onPress={() => router.push("/auth/login")}>
             <Text style={styles.redirectLink}> Log In</Text>
