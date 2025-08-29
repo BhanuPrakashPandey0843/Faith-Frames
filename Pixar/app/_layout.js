@@ -38,6 +38,8 @@ const Layout = () => {
 
           {/* Favourite */}
           <Stack.Screen name="favourite/FavouriteScreen" />
+           {/* motivation */}
+          <Stack.Screen name="motivation/MotivationScreen" />
 
           {/* Profile */}
           <Stack.Screen name="profile/EditProfileScreen" />

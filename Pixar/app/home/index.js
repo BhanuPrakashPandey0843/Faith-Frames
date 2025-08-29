@@ -52,7 +52,8 @@ let page = 1;
 
 const tabs = [
   { id: "home", icon: "home-outline", lib: Ionicons, route: "/" },
-  { id: "heart", icon: "heart", lib: FontAwesome5, route: "/favourite" },
+ { id: "lightbulb", icon: "lightbulb", lib: FontAwesome5, route: "/motivation" },
+
   { id: "settings", icon: "settings-outline", lib: Ionicons, route: "/setting" },
   { id: "quiz", icon: "help-outline", lib: MaterialIcons, route: "/quiz" },
 ];
