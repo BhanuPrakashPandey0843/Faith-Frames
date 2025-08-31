@@ -4,30 +4,15 @@ E:.
 ³   .gitignore
 ³   app.json
 ³   babel.config.js
+³   eas.json
 ³   expo-env.d.ts
+³   firebaseConfig.js
 ³   folder-structure.txt
 ³   package-lock.json
 ³   package.json
 ³   README.md
 ³   tsconfig.json
 ³   
-ÃÄÄÄ.expo
-³   ³   devices.json
-³   ³   packager-info.json
-³   ³   README.md
-³   ³   settings.json
-³   ³   
-³   ÃÄÄÄtypes
-³   ³       router.d.ts
-³   ³       
-³   ÀÄÄÄweb
-³       ÀÄÄÄcache
-³           ÀÄÄÄproduction
-³               ÀÄÄÄimages
-³                   ÀÄÄÄfavicon
-³                       ÀÄÄÄfavicon-24272cdaeff82cc5facdaccd982a6f05b60c4504704bbf94c19a6388659880bb-contain-transparent
-³                               favicon-48.png
-³                               
 ÃÄÄÄ.vscode
 ÃÄÄÄapi
 ³       index.js
@@ -51,6 +36,7 @@ E:.
 ³   ³       
 ³   ÃÄÄÄfavourite
 ³   ³       index.js
+³   ³       [id].js
 ³   ³       
 ³   ÃÄÄÄhome
 ³   ³   ³   image.js
@@ -62,6 +48,16 @@ E:.
 ³   ÃÄÄÄlegal
 ³   ³       privacy-policy.js
 ³   ³       terms-and-conditions.js
+³   ³       
+³   ÃÄÄÄmotivation
+³   ³       daily-prayers.js
+³   ³       daily-verse.js
+³   ³       gods-words.js
+³   ³       iamgec.png
+³   ³       imagea.png
+³   ³       imageb.jpg
+³   ³       index.js
+³   ³       witness.js
 ³   ³       
 ³   ÃÄÄÄprofile
 ³   ³       index.js
@@ -105,6 +101,9 @@ E:.
 ³           favicon.png
 ³           google-logo.png
 ³           icon.png
+³           image.png
+³           imagea.png
+³           imageb.jpg
 ³           partial-react-logo.png
 ³           react-logo.png
 ³           react-logo@2x.png
@@ -125,6 +124,9 @@ E:.
 ³       StackCard.js
 ³       StackCardItem.js
 ³       TopBar.js
+³       
+ÃÄÄÄconfig
+³       firebase.js
 ³       
 ÃÄÄÄconstants
 ³       data.js

@@ -2,10 +2,10 @@
   "expo": {
     "name": "Faith Frames",
     "slug": "faith-frames",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "faithframes",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
@@ -13,14 +13,25 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.faithframes.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Faith Frames needs access to your camera for profile and content uploads.",
+        "NSPhotoLibraryUsageDescription": "Faith Frames needs access to your photos to let you upload content."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.bhanupandey0843.faithframes"
+      "package": "com.faithframes.app",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -29,7 +40,13 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Faith Frames to access your photos to share your moments."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -39,8 +56,12 @@
         "origin": false
       },
       "eas": {
-        "projectId": "63a7a617-9907-4db6-b04e-27c2999f9bc7"
+        "projectId": "e73f7032-e16a-4bdd-8b9b-b2c9689cd3e2"
       }
-    }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "owner": "faithframes"
   }
 }

@@ -1,4 +1,3 @@
-// app/_layout.js
 import React from "react";
 import { Stack } from "expo-router";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
@@ -38,8 +37,13 @@ const Layout = () => {
 
           {/* Favourite */}
           <Stack.Screen name="favourite/FavouriteScreen" />
-           {/* motivation */}
+
+          {/* Motivation */}
           <Stack.Screen name="motivation/MotivationScreen" />
+          <Stack.Screen name="motivation/daily-verse" />
+          <Stack.Screen name="motivation/daily-prayers" />
+          <Stack.Screen name="motivation/gods-words" />
+          <Stack.Screen name="motivation/witness" />
 
           {/* Profile */}
           <Stack.Screen name="profile/EditProfileScreen" />
@@ -57,7 +61,7 @@ const Layout = () => {
           <Stack.Screen name="quiz/QuizScreen" />
           <Stack.Screen name="quiz/QuizQuestionScreen" />
           <Stack.Screen name="quiz/ProgressOpacity" />
-          <Stack.Screen name="quiz/ThanksScreen" />   {/* ✅ Added new Thanks screen */}
+          <Stack.Screen name="quiz/ThanksScreen" />   {/* ✅ Thanks screen */}
 
           {/* Wallpaper */}
           <Stack.Screen name="wallpaper/index" />

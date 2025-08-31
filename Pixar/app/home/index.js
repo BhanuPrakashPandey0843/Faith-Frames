@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+// HomeScreen.js
+import React, { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -9,6 +10,7 @@ import {
   Image,
   Animated,
   Easing,
+  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -24,10 +26,11 @@ import StackCard from "../../components/StackCard";
 import FiltersModel from "../../components/filterModals";
 import { apiCall } from "../../api";
 
-// 🔥 import Firebase
+// 🔥 Firebase
 import { auth, db } from "../../config/firebase";
 import { doc, onSnapshot } from "firebase/firestore";
 
+// 🎨 Theme
 const theme = {
   colors: {
     white: "#FFFFFF",
@@ -48,12 +51,10 @@ const theme = {
   },
 };
 
-let page = 1;
-
+// 📌 Tabs
 const tabs = [
   { id: "home", icon: "home-outline", lib: Ionicons, route: "/" },
- { id: "lightbulb", icon: "lightbulb", lib: FontAwesome5, route: "/motivation" },
-
+  { id: "lightbulb", icon: "lightbulb", lib: FontAwesome5, route: "/motivation" },
   { id: "settings", icon: "settings-outline", lib: Ionicons, route: "/setting" },
   { id: "quiz", icon: "help-outline", lib: MaterialIcons, route: "/quiz" },
 ];
@@ -68,10 +69,9 @@ const HomeScreen = () => {
   const [activeCategory, setActiveCategory] = useState(null);
   const [activeTab, setActiveTab] = useState("home");
   const [isEndReached, setIsEndReached] = useState(false);
-
-  // 🔥 user state
   const [user, setUser] = useState(null);
 
+  const pageRef = useRef(1);
   const searchInputRef = useRef(null);
   const modelRef = useRef(null);
   const scrollRef = useRef(null);
@@ -79,6 +79,7 @@ const HomeScreen = () => {
 
   // 🔥 Animations
   const searchAnim = useRef(new Animated.Value(-50)).current;
+  const headerAnim = useRef(new Animated.Value(-100)).current;
   const profileAnim = useRef(new Animated.Value(1)).current;
   const tabScale = useRef({}).current;
 
@@ -89,7 +90,6 @@ const HomeScreen = () => {
       if (snap.exists()) {
         setUser(snap.data());
       } else {
-        // fallback to Firebase Auth
         setUser({
           name: auth.currentUser.displayName,
           photoURL: auth.currentUser.photoURL,
@@ -99,17 +99,26 @@ const HomeScreen = () => {
     return unsub;
   }, []);
 
-  // Load images
+  // 🚀 Animate header + search
   useEffect(() => {
     fetchImages();
-    Animated.timing(searchAnim, {
-      toValue: 0,
-      duration: 600,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
+    Animated.parallel([
+      Animated.timing(searchAnim, {
+        toValue: 0,
+        duration: 600,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+      Animated.timing(headerAnim, {
+        toValue: 0,
+        duration: 700,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
 
+  // 📡 Fetch images
   const fetchImages = async (params = {}, append = true) => {
     try {
       const response = await apiCall(params);
@@ -128,22 +137,29 @@ const HomeScreen = () => {
     }
   };
 
-  const handleSearch = (text) => {
-    setSearch(text);
-    page = 1;
-    setImages([]);
-    setActiveCategory(null);
-    const params =
-      text.length > 2 ? { page, q: text, ...filters } : { page, ...filters };
-    fetchImages(params, false);
-  };
+  // 🔎 Handle search with debounce
+  const handleSearch = useCallback(
+    (text) => {
+      setSearch(text);
+      pageRef.current = 1;
+      setImages([]);
+      let params =
+        text.length > 2 ? { page: pageRef.current, q: text, ...filters } : { page: pageRef.current, ...filters };
+      if (activeCategory) params.category = activeCategory;
+      fetchImages(params, false);
+    },
+    [filters, activeCategory]
+  );
 
-  const handleTextDebounce = useCallback(debounce(handleSearch, 400), []);
+  const handleTextDebounce = useMemo(
+    () => debounce(handleSearch, 400),
+    [handleSearch]
+  );
 
   const applyFilters = () => {
-    page = 1;
+    pageRef.current = 1;
     setImages([]);
-    let params = { page, ...filters };
+    let params = { page: pageRef.current, ...filters };
     if (activeCategory) params.category = activeCategory;
     if (search) params.q = search;
     fetchImages(params, false);
@@ -151,10 +167,10 @@ const HomeScreen = () => {
   };
 
   const resetFilters = () => {
-    page = 1;
+    pageRef.current = 1;
     setFilters(null);
     setImages([]);
-    let params = { page };
+    let params = { page: pageRef.current };
     if (activeCategory) params.category = activeCategory;
     if (search) params.q = search;
     fetchImages(params, false);
@@ -167,8 +183,8 @@ const HomeScreen = () => {
 
     if (contentOffset.y >= bottomPosition - 1 && !isEndReached) {
       setIsEndReached(true);
-      page++;
-      let params = { page, ...filters };
+      pageRef.current += 1;
+      let params = { page: pageRef.current, ...filters };
       if (activeCategory) params.category = activeCategory;
       if (search) params.q = search;
       fetchImages(params, true);
@@ -182,16 +198,8 @@ const HomeScreen = () => {
     if (!tabScale[tabId]) tabScale[tabId] = new Animated.Value(1);
 
     Animated.sequence([
-      Animated.timing(tabScale[tabId], {
-        toValue: 1.2,
-        duration: 150,
-        useNativeDriver: true,
-      }),
-      Animated.timing(tabScale[tabId], {
-        toValue: 1,
-        duration: 150,
-        useNativeDriver: true,
-      }),
+      Animated.spring(tabScale[tabId], { toValue: 1.2, useNativeDriver: true }),
+      Animated.spring(tabScale[tabId], { toValue: 1, friction: 4, useNativeDriver: true }),
     ]).start();
 
     router.push(route);
@@ -200,83 +208,64 @@ const HomeScreen = () => {
   return (
     <View style={[styles.container, { paddingTop }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.userName}>
+      <Animated.View style={[styles.header, { transform: [{ translateY: headerAnim }] }]}>
+        <View style={{ flexShrink: 1 }}>
+          <Text
+            style={styles.userName}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
             Hello, {user?.name || "Guest"}
           </Text>
           <Text style={styles.welcomeText}>Welcome To Faith Frames</Text>
         </View>
         <Pressable
           onPressIn={() =>
-            Animated.spring(profileAnim, {
-              toValue: 0.9,
-              useNativeDriver: true,
-            }).start()
+            Animated.spring(profileAnim, { toValue: 0.9, useNativeDriver: true }).start()
           }
           onPressOut={() =>
-            Animated.spring(profileAnim, {
-              toValue: 1,
-              friction: 3,
-              useNativeDriver: true,
-            }).start()
+            Animated.spring(profileAnim, { toValue: 1, friction: 3, useNativeDriver: true }).start()
           }
           onPress={() => router.push("/profile")}
         >
-          <Animated.View
-            style={[
-              styles.profileImageContainer,
-              { transform: [{ scale: profileAnim }] },
-            ]}
-          >
+          <Animated.View style={[styles.profileImageContainer, { transform: [{ scale: profileAnim }] }]}>
             <Image
-              source={{
-                uri:
-                  user?.photoURL ||
-                  "https://placehold.co/200x200?text=Avatar",
-              }}
+              source={
+                user?.photoURL
+                  ? { uri: user.photoURL }
+                  : require("../../assets/images/imagea.png")
+              }
               style={styles.profileImage}
             />
           </Animated.View>
         </Pressable>
-      </View>
+      </Animated.View>
 
-      {/* Rest of your code unchanged... */}
+      {/* Content */}
       <ScrollView
         onScroll={handleScroll}
-        scrollEventThrottle={5}
+        scrollEventThrottle={16}
         ref={scrollRef}
         contentContainerStyle={{
+          flexGrow: 1,
           gap: 15,
           paddingBottom: hp(12),
-          backgroundColor: theme.colors.grayBG,
         }}
       >
         <Animated.View style={{ transform: [{ translateY: searchAnim }] }}>
           <View style={styles.searchBar}>
-            <Feather
-              name="search"
-              size={22}
-              color={theme.colors.neutral(0.4)}
-              style={styles.searchIcon}
-            />
+            <Feather name="search" size={22} color={theme.colors.neutral(0.4)} style={styles.searchIcon} />
             <TextInput
               placeholder="Search for Images..."
               ref={searchInputRef}
               onChangeText={handleTextDebounce}
               value={search}
               style={styles.searchInput}
+              placeholderTextColor={theme.colors.neutral(0.4)}
             />
             {search ? (
-              <Pressable
-                onPress={() => handleSearch("")}
-                style={styles.closeIcon}
-              >
-                <Ionicons
-                  name="close"
-                  size={20}
-                  color={theme.colors.neutral(0.6)}
-                />
+              <Pressable onPress={() => handleSearch("")} style={styles.closeIcon}>
+                <Ionicons name="close" size={20} color={theme.colors.neutral(0.6)} />
               </Pressable>
             ) : null}
           </View>
@@ -294,6 +283,7 @@ const HomeScreen = () => {
         onReset={resetFilters}
       />
 
+      {/* Bottom Nav */}
       <View style={styles.floatingBottomNav}>
         {tabs.map(({ id, icon, lib: IconLib, route }) => {
           const isActive = activeTab === id;
@@ -311,7 +301,7 @@ const HomeScreen = () => {
                 <IconLib
                   name={icon}
                   size={24}
-                  color={isActive ? theme.colors.black : "#fff"}
+                  color={isActive ? theme.colors.primary : "#fff"}
                 />
               </Animated.View>
             </Pressable>
@@ -323,14 +313,19 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.white },
+  container: { flex: 1, backgroundColor: theme.colors.grayBG },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: wp(4),
     paddingVertical: hp(2),
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.white,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
   },
   userName: {
     fontSize: hp(2.2),
@@ -349,11 +344,15 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 2,
     borderColor: theme.colors.primary,
-    shadowColor: theme.colors.primary,
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: theme.colors.primary,
+        shadowOpacity: 0.4,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 2 },
+      },
+      android: { elevation: 6 },
+    }),
   },
   profileImage: { width: "100%", height: "100%", resizeMode: "cover" },
   searchBar: {
@@ -366,11 +365,15 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 14,
     marginHorizontal: wp(4),
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 5,
-    elevation: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+      },
+      android: { elevation: 4 },
+    }),
   },
   searchIcon: { marginRight: 6 },
   searchInput: {
@@ -394,11 +397,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 6 },
+        shadowRadius: 8,
+      },
+      android: { elevation: 10 },
+    }),
   },
   iconWrapper: {
     padding: 10,
@@ -406,11 +413,6 @@ const styles = StyleSheet.create({
   },
   activeIcon: {
     backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 3,
-    elevation: 3,
   },
 });
 

@@ -1,30 +1,67 @@
-// Faith-Frames\Pixar\app\auth\login.js
+// app/auth/login.js
 import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  Image,
+  ImageBackground,
   Pressable,
-  TextInput,
   Alert,
+  ActivityIndicator,
+  Image,
 } from "react-native";
-import { StatusBar } from "expo-status-bar";
-import { LinearGradient } from "expo-linear-gradient";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useRouter } from "expo-router";
-import { hp, wp } from "../../helpers/common";
-import { theme } from "../../constants/theme";
+import * as Google from "expo-auth-session/providers/google";
+import * as WebBrowser from "expo-web-browser";
 
-// ✅ Import Firebase auth
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { hp, wp } from "../../helpers/common";
 import { auth } from "../../config/firebase";
+import {
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithCredential,
+} from "firebase/auth";
+
+import CustomInputField from "../../components/CustomInputField";
+import ProgressOpacity from "../quiz/ProgressOpacity";
+import { colors } from "../theme/colors";
+
+WebBrowser.maybeCompleteAuthSession();
 
 const LoginScreen = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // ✅ Google Auth with expo-auth-session
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    expoClientId: "<YOUR_EXPO_CLIENT_ID>.apps.googleusercontent.com",
+    iosClientId: "<YOUR_IOS_CLIENT_ID>.apps.googleusercontent.com",
+    androidClientId: "<YOUR_ANDROID_CLIENT_ID>.apps.googleusercontent.com",
+    webClientId: "<YOUR_WEB_CLIENT_ID>.apps.googleusercontent.com",
+  });
+
+  React.useEffect(() => {
+    if (response?.type === "success") {
+      const { authentication } = response;
+      if (authentication?.idToken) {
+        const credential = GoogleAuthProvider.credential(authentication.idToken);
+        signInWithCredential(auth, credential)
+          .then((userCredential) => {
+            console.log("Google Login Success:", userCredential.user.email);
+            Alert.alert("Success", "Logged in with Google!");
+            router.push("/home");
+          })
+          .catch((error) => {
+            console.error("Google Firebase login error:", error);
+            Alert.alert("Login Failed", error.message);
+          });
+      }
+    }
+  }, [response]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -34,22 +71,20 @@ const LoginScreen = () => {
 
     setLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      console.log("✅ Logged in:", userCredential.user.email);
-
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      console.log("Logged in:", userCredential.user.email);
       Alert.alert("Success", "Login successful!");
-      router.push("/home"); // redirect to your home page
+      router.push("/home");
     } catch (error) {
-      console.error("❌ Login error:", error.message);
+      console.error("Login error:", error.message);
       Alert.alert("Login Failed", error.message);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleGoogleLogin = () => {
-    console.log("Initiating Google login...");
-    // 👉 Next step: Implement Google auth with Firebase + Expo AuthSession
   };
 
   const handleForgotPassword = () => {
@@ -57,150 +92,158 @@ const LoginScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      <Image
-        source={require("../../assets/images/3d-rendering-black-cross.jpg")}
-        style={styles.bgImage}
+    <KeyboardAwareScrollView
+      style={{ flex: 1, backgroundColor: colors.white }}
+      extraScrollHeight={20}
+      enableOnAndroid
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
+      <ImageBackground
+        source={{
+          uri: "https://www.pixelstalk.net/wp-content/uploads/2016/05/Best-Black-Wallpapers.png",
+        }}
+        style={{ flex: 1 }}
         resizeMode="cover"
-      />
+      >
+        {/* Title */}
+        <Animated.Text
+          entering={FadeInDown.delay(200).duration(700).springify()}
+          style={styles.heroTitle}
+        >
+          Faith Frames
+        </Animated.Text>
 
-      <Animated.View entering={FadeInDown.duration(600)} style={{ flex: 1 }}>
-        <LinearGradient
-          colors={[
-            "rgba(255, 255, 255, 0)",
-            "rgba(255, 255, 255, 0.6)",
-            "white",
-            "white",
-          ]}
-          style={styles.gradient}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 0.9 }}
-        />
-
-        <View style={styles.contentContainer}>
-          <Animated.Text
-            entering={FadeInDown.delay(300).springify()}
-            style={styles.title}
-          >
-            Faith Frames
-          </Animated.Text>
-          <Animated.Text
-            entering={FadeInDown.delay(400).springify()}
-            style={styles.subtitle}
-          >
-            Welcome Back
-          </Animated.Text>
-
-          <Animated.View
-            entering={FadeInDown.delay(500).springify()}
-            style={styles.inputWrapper}
-          >
-            <TextInput
-              placeholder="Email"
-              placeholderTextColor="#333"
-              style={styles.input}
-              keyboardType="email-address"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-            />
-            <TextInput
-              placeholder="Password"
-              placeholderTextColor="#333"
-              style={styles.input}
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-            />
-            <Pressable onPress={handleForgotPassword}>
-              <Text style={styles.forgotPassword}>Forgot Password?</Text>
-            </Pressable>
-          </Animated.View>
-
-          <Animated.View entering={FadeInDown.delay(600).springify()}>
-            <Pressable
-              onPress={handleLogin}
-              style={[styles.loginButton, loading && { opacity: 0.6 }]}
-              disabled={loading}
+        {/* Main White Card */}
+        <View style={styles.container}>
+          <View style={styles.innerContainer}>
+            <Animated.Text
+              entering={FadeInDown.delay(300).duration(700).springify()}
+              style={styles.subtitle}
             >
-              <Text style={styles.loginText}>
-                {loading ? "Logging in..." : "Log In"}
-              </Text>
-            </Pressable>
-          </Animated.View>
+              Welcome Back
+            </Animated.Text>
 
-          <Animated.View
-            entering={FadeInDown.delay(700).springify()}
-            style={{ width: wp(80) }}
-          >
-            <Pressable onPress={handleGoogleLogin} style={styles.googleButton}>
-              <Image
-                source={require("../../assets/images/google-logo.png")}
-                style={styles.googleIcon}
+            {/* Email Input */}
+            <Animated.View
+              entering={FadeInDown.delay(400).duration(700).springify()}
+            >
+              <CustomInputField
+                label="Email Address"
+                placeholder="Enter your email"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                isMandatory
               />
-              <Text style={styles.googleText}>Continue with Google</Text>
-            </Pressable>
-          </Animated.View>
+            </Animated.View>
 
-          <Animated.View
-            entering={FadeInDown.delay(800).springify()}
-            style={styles.signupWrapper}
-          >
-            <Text style={styles.signupText}>Don't have an account?</Text>
-            <Pressable onPress={() => router.push("/auth/register")}>
-              <Text style={styles.signupLink}> Sign Up</Text>
-            </Pressable>
-          </Animated.View>
+            {/* Password Input */}
+            <Animated.View
+              entering={FadeInDown.delay(500).duration(700).springify()}
+            >
+              <CustomInputField
+                label="Password"
+                placeholder="Enter your password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                isMandatory
+              />
+              <Pressable onPress={handleForgotPassword}>
+                <Text style={styles.forgotPassword}>Forgot Password?</Text>
+              </Pressable>
+            </Animated.View>
+
+            {/* Login Button */}
+            <Animated.View
+              entering={FadeInDown.delay(600).duration(700).springify()}
+            >
+              <ProgressOpacity
+                title={loading ? "Logging in..." : "Log In"}
+                loading={loading}
+                disabled={loading}
+                onPress={handleLogin}
+                style={styles.loginBtn}
+                textStyle={{ color: "white" }}
+              />
+            </Animated.View>
+
+            {/* Google Login */}
+            <Animated.View
+              entering={FadeInDown.delay(650).duration(700).springify()}
+              style={styles.googleBtnWrapper}
+            >
+              <Pressable
+                style={styles.googleBtn}
+                disabled={!request}
+                onPress={() => promptAsync()}
+              >
+                <Image
+                  source={require("../../assets/images/google-logo.png")}
+                  style={styles.googleIcon}
+                />
+                <Text style={styles.googleBtnText}>Sign in with Google</Text>
+              </Pressable>
+            </Animated.View>
+
+            {/* Signup */}
+            <Animated.View
+              entering={FadeInDown.delay(700).duration(700).springify()}
+              style={styles.signupWrapper}
+            >
+              <Text style={styles.signupText}>Don't have an account?</Text>
+              <Pressable onPress={() => router.push("/auth/register")}>
+                <Text style={styles.signupLink}> Sign Up</Text>
+              </Pressable>
+            </Animated.View>
+          </View>
         </View>
-      </Animated.View>
-    </View>
+
+        {/* Loading Overlay */}
+        {loading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        )}
+      </ImageBackground>
+    </KeyboardAwareScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  bgImage: {
-    width: wp(100),
-    height: hp(100),
-    position: "absolute",
-    top: -hp(5),
-  },
-  gradient: {
-    width: wp(100),
-    height: hp(70),
-    position: "absolute",
-    bottom: 0,
-  },
-  contentContainer: {
+  container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-end",
-    paddingBottom: 40,
-    gap: 14,
+    backgroundColor: "rgba(255,255,255,0.96)",
+    borderTopLeftRadius: wp(10),
+    borderTopRightRadius: wp(10),
+    marginTop: hp(20),
+    paddingVertical: hp(3),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 6,
   },
-  title: {
-    fontSize: hp(6),
-    color: theme.colors.neutral(0.9),
-    fontWeight: theme.fontWeights.bold,
+  innerContainer: {
+    marginHorizontal: wp(6),
+  },
+  heroTitle: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "white",
+    textAlign: "center",
+    marginTop: hp(10),
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 4,
   },
   subtitle: {
-    fontSize: hp(2),
-    fontWeight: theme.fontWeights.medium,
-    marginBottom: 10,
-  },
-  inputWrapper: {
-    width: wp(80),
-    gap: 12,
-    marginBottom: 10,
-  },
-  input: {
-    backgroundColor: "rgba(255,255,255,0.9)",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: theme.radius.lg,
-    fontSize: hp(2),
-    color: "#000",
+    fontSize: 16,
+    textAlign: "center",
+    color: "#666",
+    marginBottom: hp(3),
   },
   forgotPassword: {
     alignSelf: "flex-end",
@@ -208,45 +251,18 @@ const styles = StyleSheet.create({
     fontSize: hp(1.7),
     color: "#666",
   },
-  loginButton: {
-    backgroundColor: theme.colors.black,
-    paddingVertical: 14,
-    paddingHorizontal: 90,
-    borderRadius: theme.radius.xl,
-    borderCurve: "continuous",
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-  },
-  loginText: {
-    color: theme.colors.white,
-    fontSize: hp(2.5),
-    fontWeight: theme.fontWeights.medium,
-  },
-  googleButton: {
-    backgroundColor: "#fff",
-    borderRadius: theme.radius.lg,
-    paddingVertical: 12,
-    flexDirection: "row",
+  loginBtn: {
+    marginTop: hp(2),
+    backgroundColor: "black",
+    borderRadius: wp(5),
+    paddingVertical: hp(1.8),
     alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-  },
-  googleIcon: {
-    width: 18,
-    height: 18,
-  },
-  googleText: {
-    fontWeight: "600",
-    color: "#333",
   },
   signupWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 12,
+    justifyContent: "center",
+    marginTop: hp(2),
   },
   signupText: {
     fontSize: hp(1.8),
@@ -254,8 +270,39 @@ const styles = StyleSheet.create({
   },
   signupLink: {
     fontSize: hp(1.8),
-    color: "#000",
+    color: "black",
     fontWeight: "bold",
+  },
+  googleBtnWrapper: {
+    marginTop: hp(2),
+    alignItems: "center",
+  },
+  googleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    borderRadius: wp(5),
+    paddingVertical: hp(1.8),
+    paddingHorizontal: wp(6),
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+  googleIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
+  },
+  googleBtnText: {
+    color: "#000",
+    fontSize: hp(2),
+    fontWeight: "bold",
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

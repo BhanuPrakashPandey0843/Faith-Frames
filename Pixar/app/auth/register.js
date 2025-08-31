@@ -4,10 +4,12 @@ import {
   View,
   Text,
   StyleSheet,
-  Image,
+  ImageBackground,
   Pressable,
   TextInput,
   Alert,
+  Image,
+  ActivityIndicator,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -15,33 +17,22 @@ import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import { hp, wp } from "../../helpers/common";
+import { colors } from "../theme/colors";
 
 // ✅ Firebase imports
-import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-
-// ✅ Your Firebase Config
-const firebaseConfig = {
-  apiKey: "AIzaSyADSJhSL-mUkh_HsHr6r0InrPxoxMo7QPU",
-  authDomain: "wallpaper-c74a3.firebaseapp.com",
-  projectId: "wallpaper-c74a3",
-  storageBucket: "wallpaper-c74a3.appspot.com",
-  messagingSenderId: "704605252889",
-  appId: "1:704605252889:web:fd7d4f666da70d2aeda988",
-  measurementId: "G-CL5K9HN0NL",
-};
-
-// ✅ Initialize Firebase once
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+import { auth, db } from "../../firebaseConfig";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 
 WebBrowser.maybeCompleteAuthSession();
 
 const RegisterScreen = () => {
   const router = useRouter();
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordStrength, setPasswordStrength] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: "YOUR_EXPO_CLIENT_ID_HERE.apps.googleusercontent.com",
@@ -60,28 +51,41 @@ const RegisterScreen = () => {
 
   // ✅ Handle Firebase Signup
   const handleSignup = async () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please enter both email and password.");
+    if (!username || !email || !password) {
+      Alert.alert("Error", "Please fill all fields.");
       return;
     }
 
+    setLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      await updateProfile(userCredential.user, { displayName: username });
+
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        uid: userCredential.user.uid,
+        username,
+        email,
+        createdAt: new Date(),
+      });
+
       Alert.alert("Success", "Account created successfully!");
-      router.push("/auth/login"); // redirect to login after signup
+      router.push("/auth/login");
     } catch (error) {
       Alert.alert("Signup Failed", error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   const evaluatePasswordStrength = (pass) => {
     let strength = "";
     if (pass.length < 6) strength = "Weak";
-    else if (
-      /[A-Z]/.test(pass) &&
-      /[0-9]/.test(pass) &&
-      /[^A-Za-z0-9]/.test(pass)
-    ) {
+    else if (/[A-Z]/.test(pass) && /[0-9]/.test(pass) && /[^A-Za-z0-9]/.test(pass)) {
       strength = "Strong";
     } else if (/[A-Z]/.test(pass) || /[0-9]/.test(pass)) {
       strength = "Medium";
@@ -92,103 +96,133 @@ const RegisterScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: colors.white }}>
       <StatusBar style="light" />
-      <Image
-        source={require("../../assets/images/3d-rendering-black-cross.jpg")}
-        style={styles.bgImage}
+      <ImageBackground
+        source={{
+          uri: "https://www.pixelstalk.net/wp-content/uploads/2016/05/Best-Black-Wallpapers.png",
+        }}
+        style={{ flex: 1 }}
         resizeMode="cover"
-      />
-      <View style={styles.overlay} />
-
-      <Animated.View
-        entering={FadeInDown.duration(600)}
-        style={styles.contentContainer}
       >
+        {/* Title on Background Image */}
         <Animated.Text
-          entering={FadeInDown.delay(300).springify()}
-          style={styles.title}
+          entering={FadeInDown.delay(200).duration(700).springify()}
+          style={styles.heroTitle}
         >
           Faith Frames
         </Animated.Text>
 
-        <Animated.Text
-          entering={FadeInDown.delay(400).springify()}
-          style={styles.subtitle}
-        >
-          Create your account
-        </Animated.Text>
+        {/* White Card */}
+        <View style={styles.container}>
+          <Animated.Text
+            entering={FadeInDown.delay(300).duration(700).springify()}
+            style={styles.subtitle}
+          >
+            Create your account
+          </Animated.Text>
 
-        <Animated.View
-          entering={FadeInDown.delay(500).springify()}
-          style={styles.inputWrapper}
-        >
-          <TextInput
-            placeholder="Email"
-            placeholderTextColor="#888"
-            style={styles.input}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
-          <TextInput
-            placeholder="Password"
-            placeholderTextColor="#888"
-            style={styles.input}
-            secureTextEntry
-            value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              evaluatePasswordStrength(text);
-            }}
-          />
-
-          {password !== "" && (
-            <Text
-              style={{
-                fontSize: hp(1.7),
-                marginTop: -4,
-                color:
-                  passwordStrength === "Strong"
-                    ? "#2e7d32"
-                    : passwordStrength === "Medium"
-                    ? "#ff9800"
-                    : "#e53935",
-              }}
-            >
-              Password Strength: {passwordStrength}
-            </Text>
-          )}
-        </Animated.View>
-
-        <Animated.View
-          entering={FadeInDown.delay(600).springify()}
-          style={styles.buttonGroup}
-        >
-          <Pressable onPress={handleSignup} style={styles.signupButton}>
-            <Text style={styles.buttonText}>Sign Up</Text>
-          </Pressable>
-
-          <Pressable onPress={() => promptAsync()} style={styles.googleButton}>
-            <Image
-              source={require("../../assets/images/google-logo.png")}
-              style={styles.googleIcon}
+          {/* Username Input */}
+          <Animated.View entering={FadeInDown.delay(400).duration(700).springify()}>
+            <TextInput
+              placeholder="Enter your username"
+              placeholderTextColor="#777"
+              style={styles.input}
+              value={username}
+              onChangeText={setUsername}
             />
-            <Text style={styles.googleText}>Sign up with Google</Text>
-          </Pressable>
-        </Animated.View>
+          </Animated.View>
 
-        <Animated.View
-          entering={FadeInDown.delay(700).springify()}
-          style={styles.loginRedirect}
-        >
-          <Text style={styles.redirectText}>Already have an account?</Text>
-          <Pressable onPress={() => router.push("/auth/login")}>
-            <Text style={styles.redirectLink}> Log In</Text>
-          </Pressable>
-        </Animated.View>
-      </Animated.View>
+          {/* Email Input */}
+          <Animated.View entering={FadeInDown.delay(500).duration(700).springify()}>
+            <TextInput
+              placeholder="Enter your email"
+              placeholderTextColor="#777"
+              style={styles.input}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
+          </Animated.View>
+
+          {/* Password Input */}
+          <Animated.View entering={FadeInDown.delay(600).duration(700).springify()}>
+            <TextInput
+              placeholder="Enter your password"
+              placeholderTextColor="#777"
+              style={styles.input}
+              secureTextEntry
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                evaluatePasswordStrength(text);
+              }}
+            />
+            {password !== "" && (
+              <Text
+                style={{
+                  fontSize: hp(1.6),
+                  marginTop: 4,
+                  color:
+                    passwordStrength === "Strong"
+                      ? "#2e7d32"
+                      : passwordStrength === "Medium"
+                      ? "#0c0b0b"
+                      : "#e53935",
+                }}
+              >
+                Password Strength: {passwordStrength}
+              </Text>
+            )}
+          </Animated.View>
+
+          {/* Signup Button */}
+          <Animated.View entering={FadeInDown.delay(700).duration(700).springify()}>
+            <Pressable
+              onPress={handleSignup}
+              style={[styles.signupButton, loading && { opacity: 0.6 }]}
+              disabled={loading}
+            >
+              <Text style={styles.signupText}>
+                {loading ? "Creating..." : "Sign Up"}
+              </Text>
+            </Pressable>
+          </Animated.View>
+
+          {/* Google Signup */}
+          <Animated.View
+            entering={FadeInDown.delay(800).duration(700).springify()}
+            style={{ marginTop: hp(2) }}
+          >
+            <Pressable onPress={() => promptAsync()} style={styles.googleButton}>
+              <Image
+                source={require("../../assets/images/google-logo.png")}
+                style={styles.googleIcon}
+              />
+              <Text style={styles.googleText}>Sign up with Google</Text>
+            </Pressable>
+          </Animated.View>
+
+          {/* Redirect to Login */}
+          <Animated.View
+            entering={FadeInDown.delay(900).duration(700).springify()}
+            style={styles.loginRedirect}
+          >
+            <Text style={styles.redirectText}>Already have an account?</Text>
+            <Pressable onPress={() => router.push("/auth/login")}>
+              <Text style={styles.redirectLink}> Log In</Text>
+            </Pressable>
+          </Animated.View>
+        </View>
+
+        {/* Loading Overlay */}
+        {loading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        )}
+      </ImageBackground>
     </View>
   );
 };
@@ -196,101 +230,90 @@ const RegisterScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: "rgba(255,255,255,0.96)",
+    borderTopLeftRadius: wp(10),
+    borderTopRightRadius: wp(10),
+    marginTop: hp(16),
+    paddingVertical: hp(3),
+    paddingHorizontal: wp(6),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 6,
   },
-  bgImage: {
-    width: wp(100),
-    height: hp(100),
-    position: "absolute",
-    top: 0,
-    left: 0,
-  },
-  overlay: {
-    position: "absolute",
-    width: wp(100),
-    height: hp(100),
-    backgroundColor: "rgba(255,255,255,0.15)",
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: "flex-end",
-    alignItems: "center",
-    paddingBottom: hp(5),
-    paddingHorizontal: wp(10),
-  },
-  title: {
-    fontSize: hp(5),
-    fontWeight: "700",
-    color: "#111",
+  heroTitle: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "#fff", // white on background
+    textAlign: "center",
+    marginTop: hp(10),
   },
   subtitle: {
-    fontSize: hp(2),
-    color: "#333",
-    marginBottom: 12,
-  },
-  inputWrapper: {
-    width: "100%",
-    gap: 12,
-    marginBottom: 8,
+    fontSize: 16,
+    textAlign: "center",
+    color: "#666",
+    marginBottom: hp(3),
   },
   input: {
     backgroundColor: "#fff",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 14,
-    fontSize: hp(1.9),
-    color: "#000",
-    borderColor: "#ddd",
     borderWidth: 1,
-  },
-  buttonGroup: {
-    gap: 16,
-    width: "100%",
-    marginTop: 10,
+    borderColor: "#ddd",
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontSize: hp(2),
+    marginBottom: hp(1.5),
   },
   signupButton: {
-    backgroundColor: "#000",
+    backgroundColor: "#000", // Black button
     paddingVertical: 14,
-    borderRadius: 16,
+    borderRadius: 12,
     alignItems: "center",
+    marginTop: hp(2),
   },
-  buttonText: {
-    color: "#fff",
+  signupText: {
+    color: "#fff", // White text
     fontSize: hp(2.2),
-    fontWeight: "600",
+    fontWeight: "bold",
   },
   googleButton: {
-    flexDirection: "row",
     backgroundColor: "#fff",
+    borderRadius: 12,
+    paddingVertical: 12,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 14,
-    borderRadius: 16,
-    borderColor: "#ccc",
-    borderWidth: 1,
     gap: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
   },
-  googleIcon: {
-    width: 20,
-    height: 20,
-  },
+  googleIcon: { width: 18, height: 18 },
   googleText: {
-    fontSize: hp(2),
-    fontWeight: "500",
-    color: "#444",
+    fontWeight: "600",
+    color: "#333",
   },
   loginRedirect: {
     flexDirection: "row",
-    marginTop: 20,
+    alignItems: "center",
+    marginTop: hp(2),
+    justifyContent: "center",
   },
   redirectText: {
     fontSize: hp(1.8),
-    color: "#666",
+    color: "#555",
   },
   redirectLink: {
     fontSize: hp(1.8),
-    fontWeight: "600",
-    color: "#000",
+    color: "#000", // black instead of yellow
+    fontWeight: "bold",
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

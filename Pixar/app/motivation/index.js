@@ -26,7 +26,7 @@ const theme = {
   colors: {
     white: "#FFFFFF",
     black: "#000000",
-    primary: "#FFFFFF", // ✅ changed from yellow to white
+    primary: "#FFFFFF",
     premiumBlack: "#1A1A1A",
     grayBG: "#F5F5F5",
     neutral: (opacity) => `rgba(0,0,0,${opacity})`,
@@ -36,11 +36,12 @@ const theme = {
 const images = [imageC, imageA, imageB];
 
 const cards = [
-  { id: 1, title: "Daily Verse", icon: "book-outline", route: "/daily-verse" },
-  { id: 2, title: "Daily Prayers", icon: "hand-left-outline", route: "/daily-prayers" },
-  { id: 3, title: "God's Words", icon: "heart-outline", route: "/gods-words" },
-  { id: 4, title: "The Witness", icon: "people-outline", route: "/witness" },
+  { id: 1, title: "Daily Verse", icon: "book-outline", route: "motivation/daily-verse" },
+  { id: 2, title: "Daily Prayers", icon: "hand-left-outline", route: "motivation/daily-prayers" },
+  { id: 3, title: "God's Words", icon: "heart-outline", route: "motivation/gods-words" },
+  { id: 4, title: "The Witness", icon: "people-outline", route: "motivation/witness" },
 ];
+
 
 const MotivationScreen = () => {
   const router = useRouter();
