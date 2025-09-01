@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderTopLeftRadius: WP(10),
     borderTopRightRadius: WP(10),
-    marginTop: HP(12),
+    marginTop: HP(60),
   },
   innerContainer: {
     marginHorizontal: WP(5),
