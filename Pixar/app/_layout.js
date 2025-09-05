@@ -13,15 +13,15 @@ const Layout = () => {
             animation: "default",
           }}
         >
-          {/* Root */}
+          {/* ================= ROOT ================= */}
           <Stack.Screen name="index" />
 
-          {/* Auth */}
+          {/* ================= AUTH ================= */}
           <Stack.Screen name="auth/login" />
           <Stack.Screen name="auth/register" />
           <Stack.Screen name="auth/forgot-password" />
 
-          {/* Home */}
+          {/* ================= HOME ================= */}
           <Stack.Screen name="home/index" />
           <Stack.Screen
             name="home/image"
@@ -32,38 +32,40 @@ const Layout = () => {
           />
           <Stack.Screen
             name="home/payment/index"
-            options={{ presentation: "modal" }}
+            options={{
+              presentation: "modal",
+              animation: "slide_from_bottom",
+            }}
           />
 
-          {/* Favourite */}
+          {/* ================= FAVOURITES ================= */}
           <Stack.Screen name="favourite/FavouriteScreen" />
 
-          {/* Motivation */}
+          {/* ================= MOTIVATION ================= */}
           <Stack.Screen name="motivation/MotivationScreen" />
           <Stack.Screen name="motivation/daily-verse" />
           <Stack.Screen name="motivation/daily-prayers" />
           <Stack.Screen name="motivation/gods-words" />
           <Stack.Screen name="motivation/witness" />
 
-          {/* Profile */}
+          {/* ================= PROFILE ================= */}
+          <Stack.Screen name="profile/index" />
           <Stack.Screen name="profile/EditProfileScreen" />
 
-          {/* Settings */}
+          {/* ================= SETTINGS ================= */}
           <Stack.Screen name="setting/SettingScreen" />
 
-          {/* Contact Us */}
+          {/* ================= INFO PAGES ================= */}
           <Stack.Screen name="contact-us/index" />
-
-          {/* Rate Our App */}
           <Stack.Screen name="rate-app/index" />
 
-          {/* Quiz */}
+          {/* ================= QUIZ ================= */}
           <Stack.Screen name="quiz/QuizScreen" />
           <Stack.Screen name="quiz/QuizQuestionScreen" />
           <Stack.Screen name="quiz/ProgressOpacity" />
-          <Stack.Screen name="quiz/ThanksScreen" />   {/* ✅ Thanks screen */}
+          <Stack.Screen name="quiz/ThanksScreen" />
 
-          {/* Wallpaper */}
+          {/* ================= WALLPAPER ================= */}
           <Stack.Screen name="wallpaper/index" />
           <Stack.Screen name="wallpaper/WallpaperListScreen" />
           <Stack.Screen
@@ -74,11 +76,11 @@ const Layout = () => {
             }}
           />
 
-          {/* Legal Pages */}
+          {/* ================= LEGAL ================= */}
           <Stack.Screen name="legal/terms-and-conditions" />
           <Stack.Screen name="legal/privacy-policy" />
 
-          {/* ReactNav playground */}
+          {/* ================= PLAYGROUND ================= */}
           <Stack.Screen name="reactnav/index" />
         </Stack>
       </BottomSheetModalProvider>

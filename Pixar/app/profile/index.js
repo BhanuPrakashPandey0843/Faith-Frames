@@ -7,9 +7,11 @@ import {
   Image,
   ImageBackground,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
+import Svg, { Path } from 'react-native-svg'; // ✅ Added import
 
 import TopBar from '../../components/TopBar';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -50,23 +52,20 @@ export default function EditProfileScreen({ navigation }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  const FALLBACK_ROUTE = '/setting';
+const FALLBACK_ROUTE = "/setting";
 
-  const safeBack = () => {
-    try {
-      if (navigation?.canGoBack?.() && navigation.canGoBack()) {
-        navigation.goBack();
-        return;
-      }
-    } catch {}
-    try {
-      if (router?.canGoBack?.() && router.canGoBack()) {
-        router.back();
-        return;
-      }
-    } catch {}
-    router.replace(FALLBACK_ROUTE);
-  };
+const safeBack = () => {
+  try {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+  } catch (err) {
+    console.warn("expo-router back failed:", err);
+  }
+
+  router.replace(FALLBACK_ROUTE);
+};
 
   const handleOnChange = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }));
@@ -112,69 +111,68 @@ export default function EditProfileScreen({ navigation }) {
     await uploadAvatar(localUri);
   };
 
-
-const uploadAvatar = async (localUri) => {
-  if (!auth.currentUser) {
-    SnackbarUtils.showError('You must be logged in to update your photo');
-    return;
-  }
-
-  try {
-    setIsUploadingImage(true);
-
-    // Fix for web vs native
-    let fileToUpload;
-    if (Platform.OS === "web") {
-      const response = await fetch(localUri);
-      const blob = await response.blob();
-      fileToUpload = blob;
-    } else {
-      fileToUpload = {
-        uri: localUri,
-        type: "image/jpeg",
-        name: "profile.jpg",
-      };
+  const uploadAvatar = async (localUri) => {
+    if (!auth.currentUser) {
+      SnackbarUtils.showError('You must be logged in to update your photo');
+      return;
     }
 
-    const formData = new FormData();
-    formData.append("file", fileToUpload);
-    formData.append("upload_preset", "FaithFrames"); // must match your Cloudinary preset
-    formData.append("folder", "avatars"); // optional folder
+    try {
+      setIsUploadingImage(true);
 
-    const response = await fetch(
-      "https://api.cloudinary.com/v1_1/dhliwva4d/image/upload",
-      {
-        method: "POST",
-        body: formData,
+      // Fix for web vs native
+      let fileToUpload;
+      if (Platform.OS === "web") {
+        const response = await fetch(localUri);
+        const blob = await response.blob();
+        fileToUpload = blob;
+      } else {
+        fileToUpload = {
+          uri: localUri,
+          type: "image/jpeg",
+          name: "profile.jpg",
+        };
       }
-    );
 
-    const data = await response.json();
-    if (!data.secure_url) {
-      throw new Error(data.error?.message || "Cloudinary upload failed");
+      const formData = new FormData();
+      formData.append("file", fileToUpload);
+      formData.append("upload_preset", "FaithFrames"); // must match your Cloudinary preset
+      formData.append("folder", "avatars"); // optional folder
+
+      const response = await fetch(
+        "https://api.cloudinary.com/v1_1/dhliwva4d/image/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+      if (!data.secure_url) {
+        throw new Error(data.error?.message || "Cloudinary upload failed");
+      }
+
+      const downloadURL = data.secure_url;
+
+      // ✅ Update Firebase Auth profile photoURL
+      await updateProfile(auth.currentUser, { photoURL: downloadURL });
+
+      // ✅ Save in Firestore
+      await setDoc(
+        doc(db, "users", auth.currentUser.uid),
+        { photoURL: downloadURL, updatedAt: Date.now() },
+        { merge: true }
+      );
+
+      setFormData((prev) => ({ ...prev, image: downloadURL }));
+      SnackbarUtils.showInfo("Profile photo updated");
+    } catch (err) {
+      console.error("Cloudinary upload error:", err);
+      SnackbarUtils.showError(err?.message || "Failed to upload image");
+    } finally {
+      setIsUploadingImage(false);
     }
-
-    const downloadURL = data.secure_url;
-
-    // ✅ Update Firebase Auth profile photoURL
-    await updateProfile(auth.currentUser, { photoURL: downloadURL });
-
-    // ✅ Save in Firestore
-    await setDoc(
-      doc(db, "users", auth.currentUser.uid),
-      { photoURL: downloadURL, updatedAt: Date.now() },
-      { merge: true }
-    );
-
-    setFormData((prev) => ({ ...prev, image: downloadURL }));
-    SnackbarUtils.showInfo("Profile photo updated");
-  } catch (err) {
-    console.error("Cloudinary upload error:", err);
-    SnackbarUtils.showError(err?.message || "Failed to upload image");
-  } finally {
-    setIsUploadingImage(false);
-  }
-};
+  };
 
   const maybeReauthenticate = async () => {
     if (!auth.currentUser) return;
@@ -257,12 +255,27 @@ const uploadAvatar = async (localUri) => {
     >
       <ImageBackground
         source={{
-          uri: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?q=80&w=987&auto=format&fit=crop',
+          uri: 'https://www.pixelstalk.net/wp-content/uploads/2016/05/Best-Black-Wallpapers.png',
         }}
         style={{ flex: 1 }}
         resizeMode="cover"
       >
-        <TopBar title="Edit Profile" />
+<TopBar title="Edit Profile" onBack={safeBack} />
+
+        {/* Slanted White Background */}
+        <Svg
+          height={HP(9)}
+          width="100%"
+          viewBox={`0 0 100 ${HP(15)}`}
+          preserveAspectRatio="none"
+          style={{ position: "absolute", top: HP(60), left: 0 }}
+        >
+          <Path
+            d={`M0,${HP(15)} L100,0 L100,${HP(15)} Z`}
+            fill={colors.white}
+          />
+        </Svg>
+
         <View style={styles.container}>
           <View style={styles.innerContainer}>
             {/* Avatar */}
@@ -284,6 +297,11 @@ const uploadAvatar = async (localUri) => {
                   }
                   style={styles.userImage}
                 />
+                {isUploadingImage && (
+                  <View style={StyleSheet.absoluteFillObject}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                  </View>
+                )}
                 <View style={styles.editIconContainer}>
                   {isUploadingImage ? (
                     <Icon name="ArrowPathIcon" size={fontSize(16)} color={colors.white} />
@@ -303,6 +321,7 @@ const uploadAvatar = async (localUri) => {
                 error={errors.name}
                 onChangeText={text => handleOnChange('name', text)}
                 isMandatory
+                editable={!isSubmitting}
               />
             </Animated.View>
 
@@ -315,6 +334,7 @@ const uploadAvatar = async (localUri) => {
                 onChangeText={text => handleOnChange('email', text)}
                 keyboardType="email-address"
                 isMandatory
+                editable={!isSubmitting}
               />
             </Animated.View>
 
@@ -326,6 +346,7 @@ const uploadAvatar = async (localUri) => {
                 error={errors.address}
                 onChangeText={text => handleOnChange('address', text)}
                 multiline
+                editable={!isSubmitting}
               />
             </Animated.View>
 
@@ -337,6 +358,7 @@ const uploadAvatar = async (localUri) => {
                 error={errors.currentPassword}
                 onChangeText={text => handleOnChange('currentPassword', text)}
                 secureTextEntry
+                editable={!isSubmitting}
               />
             </Animated.View>
 
@@ -348,6 +370,7 @@ const uploadAvatar = async (localUri) => {
                 error={errors.newPassword}
                 onChangeText={text => handleOnChange('newPassword', text)}
                 secureTextEntry
+                editable={!isSubmitting}
               />
             </Animated.View>
 
@@ -366,45 +389,58 @@ const uploadAvatar = async (localUri) => {
     </KeyboardAwareScrollView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
-    borderTopLeftRadius: WP(10),
-    borderTopRightRadius: WP(10),
     marginTop: HP(60),
+ 
+    paddingTop: HP(4),
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
   innerContainer: {
     marginHorizontal: WP(5),
+    paddingBottom: HP(5),
   },
   imageContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: HP(3),
-    marginTop: HP(-6),
+    marginTop: HP(-15),
+    zIndex: 10,
   },
   imageWrapper: {
-    position: 'relative',
+    position: "relative",
   },
   userImage: {
-    width: WP(25),
-    height: WP(25),
-    borderRadius: WP(12.5),
-    backgroundColor: colors.lightGray || '#eee',
+    width: WP(28),
+    height: WP(28),
+    borderRadius: WP(14),
+    backgroundColor: colors.lightGray || "#eee",
+    borderWidth: 3,
+    borderColor: colors.white,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
   },
   editIconContainer: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: colors.dark,
-    borderRadius: WP(4),
-    width: WP(8),
-    height: WP(8),
-    justifyContent: 'center',
-    alignItems: 'center',
+    position: "absolute",
+    bottom: WP(2),
+    right: WP(2),
+    backgroundColor: "rgba(0,0,0,0.6)",
+    borderRadius: WP(5),
+    width: WP(9),
+    height: WP(9),
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
     borderColor: colors.white,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
 });
-
-
