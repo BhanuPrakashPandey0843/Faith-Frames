@@ -14,7 +14,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient"; // 🎨 Gradient
+import { LinearGradient } from "expo-linear-gradient";
 import { hp, wp } from "../../helpers/common";
 
 // ✅ Firebase imports
@@ -35,7 +35,7 @@ const theme = {
 
 const tabs = [
   { id: "home", icon: "home-outline", lib: Ionicons, route: "/" },
-  { id: "lightbulb", icon: "lightbulb", lib: FontAwesome5, route: "/motivation" },
+  { id: "lightbulb", icon: "lightbulb", lib: FontAwesome5, route: "/motivation/MotivationScreen" },
   { id: "settings", icon: "settings-outline", lib: Ionicons, route: "/setting" },
   { id: "quiz", icon: "help-outline", lib: MaterialIcons, route: "/quiz" },
 ];
@@ -50,6 +50,7 @@ const MotivationScreen = () => {
 
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("lightbulb");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -70,7 +71,7 @@ const MotivationScreen = () => {
           setUserData(docSnap.data());
         }
       } catch (error) {
-        console.error("❌ Error fetching user data:", error);
+        console.error(" Error fetching user data:", error);
       } finally {
         setLoading(false);
       }
@@ -82,8 +83,10 @@ const MotivationScreen = () => {
   const handleTabPress = (tabId, route) => {
     if (!tabScale[tabId]) tabScale[tabId] = new Animated.Value(1);
 
+    setActiveTab(tabId);
+
     Animated.sequence([
-      Animated.spring(tabScale[tabId], { toValue: 1.2, useNativeDriver: true }),
+      Animated.spring(tabScale[tabId], { toValue: 1.2, friction: 3, useNativeDriver: true }),
       Animated.spring(tabScale[tabId], { toValue: 1, friction: 4, useNativeDriver: true }),
     ]).start();
 
@@ -128,12 +131,8 @@ const MotivationScreen = () => {
 
       {/* ✅ Scrollable Content */}
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Motivational content with gradient */}
-        <LinearGradient
-          colors={["#27D5E8", "#0F172A"]}
-          style={styles.motivationBox}
-        >
-          <Text style={styles.motivationTitle}>Stay Inspired ✨</Text>
+        <LinearGradient colors={["#27D5E8", "#0F172A"]} style={styles.motivationBox}>
+          <Text style={styles.motivationTitle}>Stay Inspired </Text>
           <Text style={styles.motivationText}>
             {userData?.lastPlayed
               ? `Last played: ${new Date(userData.lastPlayed).toLocaleString()}`
@@ -149,41 +148,30 @@ const MotivationScreen = () => {
           </View>
 
           <View style={styles.cardGrid}>
-            <View style={styles.card}>
-              <Ionicons name="book-outline" size={24} color={theme.colors.primary} />
+            {/* Card Items */}
+            <Pressable style={styles.card} onPress={() => router.push("/motivation/daily-verse")}>
+              <Ionicons name="book-outline" size={28} color={theme.colors.primary} />
               <Text style={styles.cardTitle}>Daily Verse</Text>
-              <Text style={styles.cardDesc}>
-                Read a verse each day and grow spiritually.
-              </Text>
-            </View>
+              <Text style={styles.cardDesc}>Read a powerful verse each day to guide you.</Text>
+            </Pressable>
 
-            <View style={styles.card}>
-              <Ionicons
-                name="chatbubble-ellipses-outline"
-                size={24}
-                color={theme.colors.primary}
-              />
-              <Text style={styles.cardTitle}>Daily Quote</Text>
-              <Text style={styles.cardDesc}>
-                Get uplifting thoughts to start your day.
-              </Text>
-            </View>
+            <Pressable style={styles.card} onPress={() => router.push("/motivation/daily-prayers")}>
+              <Ionicons name="hand-left-outline" size={28} color={theme.colors.primary} />
+              <Text style={styles.cardTitle}>Daily Prayer</Text>
+              <Text style={styles.cardDesc}>Start your day with heartfelt prayer and peace.</Text>
+            </Pressable>
 
-            <View style={styles.card}>
-              <Ionicons name="sparkles-outline" size={24} color={theme.colors.primary} />
-              <Text style={styles.cardTitle}>Motivation</Text>
-              <Text style={styles.cardDesc}>
-                Stay inspired with curated messages.
-              </Text>
-            </View>
+            <Pressable style={styles.card} onPress={() => router.push("/motivation/gods-words")}>
+              <Ionicons name="bookmarks-outline" size={28} color={theme.colors.primary} />
+              <Text style={styles.cardTitle}>God's Word</Text>
+              <Text style={styles.cardDesc}>Dive deeper into scripture and grow spiritually.</Text>
+            </Pressable>
 
-            <View style={styles.card}>
-              <Ionicons name="code-slash-outline" size={24} color={theme.colors.primary} />
-              <Text style={styles.cardTitle}>Daily Code</Text>
-              <Text style={styles.cardDesc}>
-                Faith-driven code snippets every day.
-              </Text>
-            </View>
+            <Pressable style={styles.card} onPress={() => router.push("/motivation/witness")}>
+              <Ionicons name="people-outline" size={28} color={theme.colors.primary} />
+              <Text style={styles.cardTitle}>The Witness</Text>
+              <Text style={styles.cardDesc}>Share and witness testimonies of faith.</Text>
+            </Pressable>
           </View>
         </View>
       </ScrollView>
@@ -192,19 +180,21 @@ const MotivationScreen = () => {
       <View style={styles.floatingBottomNav}>
         {tabs.map(({ id, icon, lib: IconLib, route }) => {
           if (!tabScale[id]) tabScale[id] = new Animated.Value(1);
+          const isActive = activeTab === id;
+
           return (
             <Pressable key={id} onPress={() => handleTabPress(id, route)}>
               <Animated.View
                 style={[
                   styles.iconWrapper,
-                  id === "lightbulb" && styles.activeIcon,
+                  isActive && styles.activeIcon,
                   { transform: [{ scale: tabScale[id] }] },
                 ]}
               >
                 <IconLib
                   name={icon}
-                  size={24}
-                  color={id === "lightbulb" ? theme.colors.primary : "#fff"}
+                  size={26}
+                  color={isActive ? theme.colors.primary : "#fff"}
                 />
               </Animated.View>
             </Pressable>
@@ -287,25 +277,29 @@ const styles = StyleSheet.create({
   },
   card: {
     width: "48%",
+    height: hp(20), // ✅ Fixed same height
     backgroundColor: theme.colors.white,
     borderRadius: 16,
     padding: wp(4),
     marginBottom: hp(2),
+    borderWidth: 2,
+    borderColor: theme.colors.primary, // ✅ Border highlight
+    justifyContent: "space-between",
     ...Platform.select({
-      ios: { shadowColor: "#000", shadowOpacity: 0.08, shadowOffset: { width: 0, height: 4 }, shadowRadius: 6 },
-      android: { elevation: 3 },
+      ios: { shadowColor: "#27D5E8", shadowOpacity: 0.15, shadowOffset: { width: 0, height: 6 }, shadowRadius: 8 },
+      android: { elevation: 5 },
     }),
   },
   cardTitle: {
     marginTop: hp(1),
     fontSize: hp(2.2),
-    fontWeight: "600",
+    fontWeight: "700",
     color: theme.colors.black,
   },
   cardDesc: {
-    fontSize: hp(1.7),
+    fontSize: hp(1.8),
     color: theme.colors.neutral(0.6),
-    marginTop: 4,
+    marginTop: 6,
   },
 
   floatingBottomNav: {
@@ -325,12 +319,22 @@ const styles = StyleSheet.create({
     }),
   },
   iconWrapper: {
-    padding: 10,
-    borderRadius: 30,
+    padding: 14,
+    borderRadius: 40,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   activeIcon: {
-    backgroundColor: "#fff",
+    backgroundColor: "rgba(255,255,255,0.95)",
+    shadowColor: "#27D5E8",
+    shadowOpacity: 0.6,
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 10,
+    elevation: 8,
   },
 });
 
 export default MotivationScreen;
+
+
