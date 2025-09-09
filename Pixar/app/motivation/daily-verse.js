@@ -1,4 +1,3 @@
-// app/motivation/daily-verse.js
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -7,118 +6,105 @@ import {
   TouchableOpacity,
   Share,
   ImageBackground,
-  Platform, // ✅ Added
+  ActivityIndicator,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Notifications from "expo-notifications";
-import * as BackgroundFetch from "expo-background-fetch";
-import * as TaskManager from "expo-task-manager";
-
-import TopBar from "../../components/TopBar";
-
-const VERSE_TASK = "DAILY_VERSE_TASK";
-
-const verses = [
-  "The Lord is my shepherd; I shall not want. – Psalm 23:1",
-  "I can do all things through Christ who strengthens me. – Philippians 4:13",
-  "Be still, and know that I am God. – Psalm 46:10",
-  "The Lord is my light and my salvation—whom shall I fear? – Psalm 27:1",
-  "Cast all your anxiety on him because he cares for you. – 1 Peter 5:7",
-];
-
-// ✅ Import local background image (same folder)
-const backgroundImage = require("./dailyversebg.jpg");
-
-TaskManager.defineTask(VERSE_TASK, async () => {
-  try {
-    const randomVerse = verses[Math.floor(Math.random() * verses.length)];
-    await AsyncStorage.setItem("dailyVerse", randomVerse);
-
-    // ✅ Only run on iOS/Android
-    if (Platform.OS !== "web") {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "📖 Daily Verse",
-          body: randomVerse,
-        },
-        trigger: null,
-      });
-    }
-
-    return BackgroundFetch.Result.NewData;
-  } catch (error) {
-    return BackgroundFetch.Result.Failed;
-  }
-});
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../firebaseConfig";
+import { useRouter } from "expo-router";  // ✅ Import router
 
 export default function DailyVerse() {
-  const [verse, setVerse] = useState("");
+  const [verseData, setVerseData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter(); // ✅ Initialize router
 
   useEffect(() => {
-    (async () => {
-      const storedVerse = await AsyncStorage.getItem("dailyVerse");
-      if (storedVerse) setVerse(storedVerse);
-      else {
-        const randomVerse = verses[Math.floor(Math.random() * verses.length)];
-        setVerse(randomVerse);
-        await AsyncStorage.setItem("dailyVerse", randomVerse);
-      }
+    const fetchVerse = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "dailyVerses"));
+        const verses = querySnapshot.docs.map((doc) => doc.data());
 
-      // ✅ Only request permissions + schedule notifications on mobile
-      if (Platform.OS !== "web") {
-        const { status } = await Notifications.requestPermissionsAsync();
-        if (status !== "granted") {
-          alert("Enable notifications to get daily verses!");
+        if (verses.length > 0) {
+          const today = new Date();
+          const dayOfYear = Math.floor(
+            (today - new Date(today.getFullYear(), 0, 0)) / 86400000
+          );
+          const verseIndex = dayOfYear % verses.length;
+
+          setVerseData(verses[verseIndex]);
+        } else {
+          console.log("❌ No verses found in Firestore");
         }
-
-        await Notifications.cancelAllScheduledNotificationsAsync();
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: " Daily Verse",
-            body: verses[Math.floor(Math.random() * verses.length)],
-          },
-          trigger: { hour: 0, minute: 0, repeats: true },
-        });
-
-        await BackgroundFetch.registerTaskAsync(VERSE_TASK, {
-          minimumInterval: 60 * 60 * 24,
-          stopOnTerminate: false,
-          startOnBoot: true,
-        });
+      } catch (error) {
+        console.log("🔥 Error fetching verse:", error);
+      } finally {
+        setLoading(false);
       }
-    })();
+    };
+
+    fetchVerse();
   }, []);
 
   const handleShare = async () => {
+    if (!verseData) return;
     try {
       await Share.share({
-        message: verse,
+        message: `${verseData.verse} – ${verseData.reference}`,
       });
     } catch (error) {
       alert("Error sharing verse");
     }
   };
 
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#27D5E8" />
+      </View>
+    );
+  }
+
+  if (!verseData) {
+    return (
+      <View style={styles.loader}>
+        <Text style={{ color: "white" }}>No verse available</Text>
+      </View>
+    );
+  }
+
   return (
     <ImageBackground
-      source={backgroundImage}
+      source={{ uri: verseData.bgurl }}
       style={styles.background}
       resizeMode="cover"
     >
       <View style={styles.overlay}>
-        <TopBar title="Daily Verse" titleColor="white" />
+        {/* 🔹 Top Bar with Back Button */}
+        <View style={styles.topBar}>
+          <TouchableOpacity
+            onPress={() => router.push("/motivation")} // ✅ Fixed navigation
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={26} color="white" />
+          </TouchableOpacity>
+          <Text style={styles.topTitle}>Daily Verse</Text>
+          <View style={{ width: 40 }} />
+        </View>
 
+        {/* 🔹 Verse Card */}
         <View style={styles.card}>
-          <Text style={styles.verseText}>{verse}</Text>
+          <Text style={styles.verseText}>"{verseData.verse}"</Text>
+          <Text style={styles.reference}>{verseData.reference}</Text>
 
+          {/* Actions */}
           <View style={styles.actions}>
-            <TouchableOpacity>
-              <Ionicons name="heart-outline" size={28} color="red" />
+            <TouchableOpacity style={styles.iconButton}>
+              <Ionicons name="heart-outline" size={30} color="white" />
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={handleShare}>
-              <Ionicons name="share-social-outline" size={28} color="blue" />
+            <TouchableOpacity style={styles.iconButton} onPress={handleShare}>
+              <Ionicons name="share-social-outline" size={30} color="white" />
             </TouchableOpacity>
           </View>
         </View>
@@ -133,27 +119,84 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)", // ✅ dim effect for readability
+    backgroundColor: "rgba(0,0,0,0.65)",
     padding: 20,
+    justifyContent: "center",
   },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
+  topBar: {
+    position: "absolute",
+    top: Platform.OS === "ios" ? 60 : 40,
+    left: 20,
+    right: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  backButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "rgba(255,255,255,0.25)",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 50,
-    elevation: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
+    elevation: 6,
+  },
+  topTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "white",
+  },
+  card: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+    padding: 30,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 10,
+    elevation: 8,
   },
   verseText: {
-    fontSize: 18,
-    fontStyle: "italic",
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "white",
     textAlign: "center",
-    marginBottom: 20,
+    lineHeight: 32,
+    marginBottom: 12,
+  },
+  reference: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#FFD700",
+    marginBottom: 25,
   },
   actions: {
     flexDirection: "row",
     justifyContent: "space-around",
     width: "60%",
+  },
+  iconButton: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 30,
+    padding: 10,
+    marginHorizontal: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  loader: {
+    flex: 1,
+    backgroundColor: "black",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

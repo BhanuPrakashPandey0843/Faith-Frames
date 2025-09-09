@@ -47,6 +47,8 @@ const Layout = () => {
           <Stack.Screen name="motivation/daily-prayers" />
           <Stack.Screen name="motivation/gods-words" />
           <Stack.Screen name="motivation/witness" />
+          {/* ✅ Added detail screen for study plans */}
+          <Stack.Screen name="motivation/PlanDetail" />
 
           {/* ================= PROFILE ================= */}
           <Stack.Screen name="profile/index" />

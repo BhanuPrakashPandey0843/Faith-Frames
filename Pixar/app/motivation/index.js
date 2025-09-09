@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
   },
   activeIcon: {
     backgroundColor: "rgba(255,255,255,0.95)",
-    shadowColor: "#27D5E8",
+    shadowColor: "#27D5E8",  
     shadowOpacity: 0.6,
     shadowOffset: { width: 0, height: 0 },
     shadowRadius: 10,
