@@ -252,25 +252,7 @@ const HomeScreen = () => {
           paddingBottom: hp(12),
         }}
       >
-        <Animated.View style={{ transform: [{ translateY: searchAnim }] }}>
-          <View style={styles.searchBar}>
-            <Feather name="search" size={22} color={theme.colors.neutral(0.4)} style={styles.searchIcon} />
-            <TextInput
-              placeholder="Search for Images..."
-              ref={searchInputRef}
-              onChangeText={handleTextDebounce}
-              value={search}
-              style={styles.searchInput}
-              placeholderTextColor={theme.colors.neutral(0.4)}
-            />
-            {search ? (
-              <Pressable onPress={() => handleSearch("")} style={styles.closeIcon}>
-                <Ionicons name="close" size={20} color={theme.colors.neutral(0.6)} />
-              </Pressable>
-            ) : null}
-          </View>
-        </Animated.View>
-
+     
         <StackCard images={images} fadeIn />
       </ScrollView>
 

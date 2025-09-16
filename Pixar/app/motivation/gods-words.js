@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,48 +6,52 @@ import {
   ScrollView,
   ImageBackground,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import TopBar from "../../components/TopBar";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 
-const studyPlans = [
-  {
-    id: 1,
-    title: "Faith and Trust in God",
-    image: { uri: "https://wallpaperaccess.com/full/555228.jpg" },
-    description:
-      "Learn to put your faith and trust in God in every situation. This plan will guide you with scriptures and reflections that strengthen your reliance on Him.",
-  },
-  {
-    id: 2,
-    title: "The Power of Prayer",
-    image: { uri: "https://cdn.wallpapersafari.com/14/98/lGXV0T.jpg" },
-    description:
-      "Discover how prayer changes circumstances and brings peace to the soul. This study plan dives deep into the life-changing habit of prayer.",
-  },
-  {
-    id: 3,
-    title: "Overcoming Fear and Anxiety",
-    image: { uri: "https://i.etsystatic.com/48999819/r/il/3db1a8/5641974688/il_fullxfull.5641974688_btyv.jpg" },
-    description:
-      "God has not given us a spirit of fear but of power, love, and a sound mind. Walk through scriptures that help overcome fear and anxiety.",
-  },
-  {
-    id: 4,
-    title: "Love and Compassion",
-    image: { uri: "https://wallpaperaccess.com/full/667102.jpg" },
-    description:
-      "Love is the greatest commandment. This plan focuses on cultivating a compassionate heart through God’s word and actions.",
-  },
-];
+// ✅ Import Firebase
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../firebaseConfig"; // <-- make sure this points to your Firebase config
 
 const GodsWords = () => {
   const router = useRouter();
+  const [studyPlans, setStudyPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const handleBack = () => {
-    router.push("/motivation/MotivationScreen"); // navigate to motivation screen
+    router.push("/motivation/MotivationScreen");
   };
+
+  // ✅ Fetch study plans from Firestore
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "studyPlans"));
+        const plans = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setStudyPlans(plans);
+      } catch (error) {
+        console.error("Error fetching study plans:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlans();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#555" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -63,14 +67,15 @@ const GodsWords = () => {
                 pathname: "/motivation/PlanDetail",
                 params: {
                   title: plan.title,
-                  image: plan.image.uri,
+                  image: plan.image,
                   description: plan.description,
+                  duration: plan.duration,
                 },
               })
             }
           >
             <ImageBackground
-              source={plan.image}
+              source={{ uri: plan.image }}
               style={styles.image}
               imageStyle={styles.imageStyle}
             >
@@ -82,7 +87,9 @@ const GodsWords = () => {
             <View style={styles.textContainer}>
               <Text style={styles.cardTitle}>{plan.title}</Text>
               <View style={styles.duration}>
-                <Text style={styles.durationText}>3 Days</Text>
+                <Text style={styles.durationText}>
+                  {plan.duration || "3 Days"}
+                </Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -98,6 +105,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f9f9f9",
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   scroll: {
     padding: 16,
