@@ -4,17 +4,16 @@ import {
   View,
   Text,
   StyleSheet,
-  ImageBackground,
   Pressable,
   Alert,
   ActivityIndicator,
-  Image,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useRouter } from "expo-router";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
+import { LinearGradient } from "expo-linear-gradient";
 
 import { hp, wp } from "../../helpers/common";
 import { auth } from "../../config/firebase";
@@ -93,126 +92,129 @@ const LoginScreen = () => {
 
   return (
     <KeyboardAwareScrollView
-      style={{ flex: 1, backgroundColor: colors.white }}
-      extraScrollHeight={20}
+      style={{ flex: 1, backgroundColor: "#000" }}
       enableOnAndroid
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-      <ImageBackground
-        source={{
-          uri: "https://www.pixelstalk.net/wp-content/uploads/2016/05/Best-Black-Wallpapers.png",
-        }}
-        style={{ flex: 1 }}
-        resizeMode="cover"
+      {/* --- Neon Top Glow --- */}
+      <LinearGradient
+        colors={["rgba(0,255,106,0.4)", "rgba(0,255,106,0.05)", "transparent"]}
+        style={styles.neonGlow}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+      />
+
+      {/* Title */}
+      <Animated.Text
+        entering={FadeInDown.delay(200).duration(700).springify()}
+        style={styles.heroTitle}
       >
-        {/* Title */}
-        <Animated.Text
-          entering={FadeInDown.delay(200).duration(700).springify()}
-          style={styles.heroTitle}
-        >
-          Faith Frames
-        </Animated.Text>
+        Faith Frames
+      </Animated.Text>
 
-        {/* Main White Card */}
-        <View style={styles.container}>
-          <View style={styles.innerContainer}>
-            <Animated.Text
-              entering={FadeInDown.delay(300).duration(700).springify()}
-              style={styles.subtitle}
-            >
-              Welcome Back
-            </Animated.Text>
+      {/* Main White Card */}
+      <View style={styles.container}>
+        <View style={styles.innerContainer}>
+          <Animated.Text
+            entering={FadeInDown.delay(300).duration(700).springify()}
+            style={styles.subtitle}
+          >
+            Welcome Back
+          </Animated.Text>
 
-            {/* Email Input */}
-            <Animated.View
-              entering={FadeInDown.delay(400).duration(700).springify()}
-            >
-              <CustomInputField
-                label="Email Address"
-                placeholder="Enter your email"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                isMandatory
-              />
-            </Animated.View>
+          {/* Email Input */}
+          <Animated.View
+            entering={FadeInDown.delay(400).duration(700).springify()}
+          >
+            <CustomInputField
+              label="Email Address"
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              isMandatory
+            />
+          </Animated.View>
 
-            {/* Password Input */}
-            <Animated.View
-              entering={FadeInDown.delay(500).duration(700).springify()}
-            >
-              <CustomInputField
-                label="Password"
-                placeholder="Enter your password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                isMandatory
-              />
-              <Pressable onPress={handleForgotPassword}>
-                <Text style={styles.forgotPassword}>Forgot Password?</Text>
-              </Pressable>
-            </Animated.View>
+          {/* Password Input */}
+          <Animated.View
+            entering={FadeInDown.delay(500).duration(700).springify()}
+          >
+            <CustomInputField
+              label="Password"
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              isMandatory
+            />
+            <Pressable onPress={handleForgotPassword}>
+              <Text style={styles.forgotPassword}>Forgot Password?</Text>
+            </Pressable>
+          </Animated.View>
 
-            {/* Login Button */}
-            <Animated.View
-              entering={FadeInDown.delay(600).duration(700).springify()}
-            >
-              <ProgressOpacity
-                title={loading ? "Logging in..." : "Log In"}
-                loading={loading}
-                disabled={loading}
-                onPress={handleLogin}
-                style={styles.loginBtn}
-                textStyle={{ color: "white" }}
-              />
-            </Animated.View>
+          {/* Login Button */}
+          <Animated.View
+            entering={FadeInDown.delay(600).duration(700).springify()}
+          >
+            <ProgressOpacity
+              title={loading ? "Logging in..." : "Log In"}
+              loading={loading}
+              disabled={loading}
+              onPress={handleLogin}
+              style={styles.loginBtn}
+              textStyle={{ color: "white" }}
+            />
+          </Animated.View>
 
-            {/* Google Login */}
-            <Animated.View
-              entering={FadeInDown.delay(650).duration(700).springify()}
-              style={styles.googleBtnWrapper}
+          {/* Google Login */}
+          <Animated.View
+            entering={FadeInDown.delay(650).duration(700).springify()}
+            style={styles.googleBtnWrapper}
+          >
+            <Pressable
+              style={styles.googleBtn}
+              disabled={!request}
+              onPress={() => promptAsync()}
             >
-              <Pressable
-                style={styles.googleBtn}
-                disabled={!request}
-                onPress={() => promptAsync()}
-              >
-                <Image
-                  source={require("../../assets/images/google-logo.png")}
-                  style={styles.googleIcon}
-                />
-                <Text style={styles.googleBtnText}>Sign in with Google</Text>
-              </Pressable>
-            </Animated.View>
+              <Text style={styles.googleBtnText}>Sign in with Google</Text>
+            </Pressable>
+          </Animated.View>
 
-            {/* Signup */}
-            <Animated.View
-              entering={FadeInDown.delay(700).duration(700).springify()}
-              style={styles.signupWrapper}
-            >
-              <Text style={styles.signupText}>Don't have an account?</Text>
-              <Pressable onPress={() => router.push("/auth/register")}>
-                <Text style={styles.signupLink}> Sign Up</Text>
-              </Pressable>
-            </Animated.View>
-          </View>
+          {/* Signup */}
+          <Animated.View
+            entering={FadeInDown.delay(700).duration(700).springify()}
+            style={styles.signupWrapper}
+          >
+            <Text style={styles.signupText}>Don't have an account?</Text>
+            <Pressable onPress={() => router.push("/auth/register")}>
+              <Text style={styles.signupLink}> Sign Up</Text>
+            </Pressable>
+          </Animated.View>
         </View>
+      </View>
 
-        {/* Loading Overlay */}
-        {loading && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color={colors.primary} />
-          </View>
-        )}
-      </ImageBackground>
+      {/* Loading Overlay */}
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      )}
     </KeyboardAwareScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  neonGlow: {
+    position: "absolute",
+    top: -hp(10),
+    width: wp(150),
+    height: hp(50),
+    borderRadius: wp(75),
+    alignSelf: "center",
+  },
   container: {
     flex: 1,
     backgroundColor: "rgba(255,255,255,0.96)",
@@ -242,7 +244,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     textAlign: "center",
-    color: "#666",
+    color: "#ccc",
     marginBottom: hp(3),
   },
   forgotPassword: {
@@ -270,7 +272,7 @@ const styles = StyleSheet.create({
   },
   signupLink: {
     fontSize: hp(1.8),
-    color: "black",
+    color: "#00FF6A", // neon green for consistency
     fontWeight: "bold",
   },
   googleBtnWrapper: {
@@ -287,11 +289,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(6),
     borderWidth: 1,
     borderColor: "#ccc",
-  },
-  googleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 10,
   },
   googleBtnText: {
     color: "#000",

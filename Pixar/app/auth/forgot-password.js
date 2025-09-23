@@ -1,32 +1,30 @@
-// app/auth/forgot-password.js
+// app/auth/ForgotPassword.js
 import React, { useState } from "react";
 import {
   View,
+  Text,
   StyleSheet,
-  ImageBackground,
+  Pressable,
   ActivityIndicator,
+  Image,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import CustomInputField from "../../components/CustomInputField";
-import ProgressOpacity from "../quiz/ProgressOpacity";
-import { commonStyles } from "../utils/commonStyles";
 import SnackbarUtils from "../utils/SnackbarUtils";
-import { colors } from "../theme/colors";
 import { HP, WP } from "../theme/scale";
 
-//  Firebase
-import { auth } from "../../config/firebase";
+// ✅ Firebase import
+import { auth } from "../../firebaseConfig";
 import { sendPasswordResetEmail } from "firebase/auth";
 
 export default function ForgotPassword() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async () => {
     if (!email) {
@@ -43,8 +41,7 @@ export default function ForgotPassword() {
       setIsSubmitting(true);
       setError(null);
       await sendPasswordResetEmail(auth, email);
-      setSuccess(true);
-      SnackbarUtils.showInfo("Password reset link sent to your email.");
+      SnackbarUtils.showInfo(" Password reset link sent to your email.");
     } catch (err) {
       console.error("Forgot password error:", err);
       setError(err?.message || "Failed to send reset email");
@@ -56,140 +53,160 @@ export default function ForgotPassword() {
 
   return (
     <KeyboardAwareScrollView
-      style={{ flex: 1, backgroundColor: colors.white }}
-      extraScrollHeight={20}
+      style={{ flex: 1, backgroundColor: "#000" }}
+      contentContainerStyle={styles.container}
       enableOnAndroid
       keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
     >
-      <ImageBackground
-        source={{
-          uri: "https://www.pixelstalk.net/wp-content/uploads/2016/05/Best-Black-Wallpapers.png",
-        }}
-        style={{ flex: 1 }}
-        resizeMode="cover"
+      <StatusBar style="light" />
+
+      {/* --- Neon Top Glow --- */}
+      <LinearGradient
+        colors={["rgba(0,255,106,0.4)", "rgba(0,255,106,0.05)", "transparent"]}
+        style={styles.neonGlow}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+      />
+
+      {/* ✅ Logo (Bigger) */}
+      <Animated.View
+        entering={FadeInDown.delay(100).springify()}
+        style={styles.logoWrapper}
       >
-        {/* Title on Background Image */}
-        <Animated.Text
-          entering={FadeInDown.delay(200).duration(700).springify()}
-          style={styles.heroTitle}
+        <Image
+          source={require("../../assets/images/H-removebg-preview.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </Animated.View>
+
+      {/* Title */}
+      <Animated.Text
+        entering={FadeInDown.delay(200).springify()}
+        style={styles.title}
+      >
+        Forgot Password
+      </Animated.Text>
+
+      {/* Subtitle */}
+      <Animated.Text
+        entering={FadeInDown.delay(300).springify()}
+        style={styles.subtitle}
+      >
+        Reset your password to access{" "}
+        <Text style={{ color: "#00FF6A", fontWeight: "700" }}>Faith Frames</Text>
+      </Animated.Text>
+
+      {/* Email Input */}
+      <Animated.View
+        entering={FadeInDown.delay(400).springify()}
+        style={{ width: "100%" }}
+      >
+        <CustomInputField
+          label="Email"
+          placeholder="Enter your email"
+          value={email}
+          error={error}
+          onChangeText={(text) => {
+            setEmail(text);
+            if (error) setError(null);
+          }}
+          isMandatory
+          keyboardType="email-address"
+          autoCapitalize="none"
+          style={styles.inputField}
+        />
+      </Animated.View>
+
+      {/* Send Button */}
+      <Animated.View
+        entering={FadeInDown.delay(500).springify()}
+        style={{ width: "100%" }}
+      >
+        <Pressable
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+          style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
         >
-          Faith Frames
-        </Animated.Text>
+          <LinearGradient
+            colors={["#00FF6A", "#D4FF3F"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.sendButton}
+          >
+            <Text style={styles.sendText}>
+              {isSubmitting ? "Sending..." : "Send Reset Link"}
+            </Text>
+          </LinearGradient>
+        </Pressable>
+      </Animated.View>
 
-        {/* Main White Card */}
-        <View style={styles.container}>
-          <View style={styles.innerContainer}>
-            {/* Subtitle */}
-            <Animated.Text
-              entering={FadeInDown.delay(100).duration(700).springify()}
-              style={styles.subtitle}
-            >
-              Enter your registered email to reset your password.
-            </Animated.Text>
-
-            {/* Email Input */}
-            <Animated.View
-              entering={FadeInDown.delay(300).duration(700).springify()}
-            >
-              <CustomInputField
-                label="Email Address"
-                placeholder="Enter your email"
-                value={email}
-                error={error}
-                onChangeText={(text) => setEmail(text)}
-                isMandatory
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </Animated.View>
-
-            {/* Submit Button */}
-            <Animated.View
-              entering={FadeInDown.delay(600).duration(700).springify()}
-            >
-              <ProgressOpacity
-                title={isSubmitting ? "Sending..." : "Send Reset Link"}
-                loading={isSubmitting}
-                disabled={isSubmitting}
-                onPress={handleSubmit}
-                style={commonStyles.primaryBtn}
-              />
-            </Animated.View>
-
-            {/* Success Message */}
-            {success && (
-              <Animated.Text
-                entering={FadeInDown.delay(900).duration(700).springify()}
-                style={styles.successMsg}
-              >
-                Check your inbox for password reset instructions.
-              </Animated.Text>
-            )}
-          </View>
+      {/* Loading Overlay */}
+      {isSubmitting && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#00FF6A" />
         </View>
-
-        {/* Loading Overlay */}
-        {isSubmitting && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color={colors.primary} />
-          </View>
-        )}
-      </ImageBackground>
+      )}
     </KeyboardAwareScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  heroTitle: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: colors.white,
-    textAlign: "center",
-    marginTop: HP(8),
-    letterSpacing: 2,
-    textShadowColor: "rgba(0, 0, 0, 0.6)",
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 6,
-  },
   container: {
-    flex: 1,
-    backgroundColor: "rgba(255,255,255,0.96)",
-    borderTopLeftRadius: WP(10),
-    borderTopRightRadius: WP(10),
-    marginTop: HP(20),
-    paddingVertical: HP(3),
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 6,
+    flexGrow: 1,
+    paddingHorizontal: WP(6),
+    paddingTop: HP(6),
+    backgroundColor: "#000",
+    alignItems: "center", // ✅ Center elements
   },
-  innerContainer: {
-    marginHorizontal: WP(6),
+  neonGlow: {
+    position: "absolute",
+    top: -HP(10),
+    width: WP(150),
+    height: HP(50),
+    borderRadius: WP(75),
+    alignSelf: "center",
+  },
+  logoWrapper: {
+    alignItems: "center",
+    marginBottom: HP(2),
+  },
+  logo: {
+    width: WP(100), // ✅ Bigger
+    height: HP(40), // ✅ Bigger
+  },
+  title: {
+    fontSize: HP(3.5),
+    color: "#fff",
+    fontWeight: "700",
+    marginBottom: HP(1),
+    textAlign: "center",
   },
   subtitle: {
-    fontSize: 15,
-    color: colors.gray,
+    fontSize: HP(2),
+    color: "#f1eaea",
+    marginBottom: HP(4),
     textAlign: "center",
-    marginBottom: HP(2),
-    lineHeight: 22,
-    fontWeight: "400",
+    paddingHorizontal: WP(5),
   },
-  successMsg: {
+  inputField: {
+    marginBottom: HP(2),
+  },
+  sendButton: {
+    paddingVertical: 15,
+    borderRadius: 25,
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: HP(2),
-    color: colors.success || "green",
-    fontSize: 15,
-    textAlign: "center",
-    fontWeight: "500",
-    backgroundColor: "rgba(0,200,100,0.08)",
-    paddingVertical: 10,
-    borderRadius: 8,
-    overflow: "hidden",
+  },
+  sendText: {
+    color: "#000",
+    fontSize: HP(2.2),
+    fontWeight: "700",
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.25)",
+    backgroundColor: "rgba(0,0,0,0.35)",
     justifyContent: "center",
     alignItems: "center",
   },
