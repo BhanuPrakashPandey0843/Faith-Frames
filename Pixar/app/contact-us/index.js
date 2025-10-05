@@ -1,286 +1,377 @@
-import React, { useState, useRef } from "react";
+// Pixar/app/contact/index.js
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  ScrollView,
   ActivityIndicator,
   Animated,
+  Platform,
+  ScrollView,
+  Easing,
 } from "react-native";
-import { useRouter, useNavigation } from "expo-router";
-import axios from "axios";
-import Icon from "../../components/Icon";
-import { colors } from "../theme/colors";
-import { fontSize, HP, WP } from "../theme/scale";
-import TopBar from "../../components/TopBar";
 import { LinearGradient } from "expo-linear-gradient";
+import { fontSize, HP, WP } from "../theme/scale";
+import Icon from "../../components/Icon";
+import axios from "axios";
+
+const theme = {
+  colors: {
+    white: "#fff",
+    black: "#000",
+    primary: "#FFD700",
+    secondary: "#00FF87",
+    glass: "rgba(255,255,255,0.1)",
+    placeholder: "rgba(255,255,255,0.6)",
+    bg: "#000",
+  },
+};
 
 export default function ContactUs() {
-  const router = useRouter();
-  const navigation = useNavigation();
-
-  const toast = useRef(new Animated.Value(0)).current;
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastType, setToastType] = useState("success");
-
-  const [message, setMessage] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState("");
 
-  const safeBack = () => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    } else {
-      router.replace("/home");
-    }
-  };
+  // Animations
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const iconAnim = useRef(new Animated.Value(0)).current;
+  const toastAnim = useRef(new Animated.Value(0)).current;
 
-  const showToast = (msg, type = "success") => {
-    setToastMessage(msg);
-    setToastType(type);
+  // Entrance animation
+  useEffect(() => {
     Animated.sequence([
-      Animated.timing(toast, { toValue: 1, duration: 300, useNativeDriver: true }),
-      Animated.delay(2000),
-      Animated.timing(toast, { toValue: 0, duration: 300, useNativeDriver: true }),
+      Animated.parallel([
+        Animated.timing(iconAnim, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.out(Easing.exp),
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 1000,
+          delay: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 800,
+          easing: Easing.out(Easing.cubic),
+          delay: 300,
+          useNativeDriver: true,
+        }),
+      ]),
     ]).start();
+  }, []);
+
+  const showToast = (msg) => {
+    setToast(msg);
+    Animated.sequence([
+      Animated.spring(toastAnim, {
+        toValue: 1,
+        friction: 7,
+        tension: 50,
+        useNativeDriver: true,
+      }),
+      Animated.delay(2200),
+      Animated.timing(toastAnim, {
+        toValue: 0,
+        duration: 500,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ]).start(() => setToast(""));
   };
 
   const sendMessage = async () => {
     if (!name || !email || !message) {
-      showToast("Please fill all fields", "error");
+      showToast("Please fill all fields ⚠️");
       return;
     }
-
     setLoading(true);
     try {
       const SERVICE_ID = "your_service_id";
       const TEMPLATE_ID = "your_template_id";
       const PUBLIC_KEY = "your_public_key";
 
-      const data = {
+      await axios.post("https://api.emailjs.com/api/v1.0/email/send", {
         service_id: SERVICE_ID,
         template_id: TEMPLATE_ID,
         user_id: PUBLIC_KEY,
-        template_params: {
-          from_name: name,
-          from_email: email,
-          message: message,
-        },
-      };
+        template_params: { from_name: name, from_email: email, message },
+      });
 
-      await axios.post("https://api.emailjs.com/api/v1.0/email/send", data);
-      showToast("Message sent successfully!");
+      showToast("Message Sent Successfully ✨");
       setName("");
       setEmail("");
       setMessage("");
-    } catch (error) {
-      showToast("Failed to send message", "error");
+    } catch (err) {
+      showToast("Failed to Send Message ❌");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <LinearGradient colors={[colors.background, "#f9f9f9"]} style={{ flex: 1 }}>
-      <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
-        <TopBar
-          title="Contact Us"
-          leftView={
-            <TouchableOpacity onPress={safeBack}>
-              <Icon name="ChevronLeftIcon" color={colors.dark} />
-            </TouchableOpacity>
-          }
-        />
+    <LinearGradient colors={["#001400", "#000"]} style={styles.container}>
+      {/* Animated floating glows */}
+      <View style={styles.glow1} />
+      <View style={styles.glow2} />
 
-        <View style={styles.inner}>
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: "center",
+          paddingVertical: HP(6),
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Animated Icon */}
+        <Animated.View
+          style={[
+            styles.iconCircle,
+            {
+              opacity: iconAnim,
+              transform: [
+                { scale: iconAnim.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) },
+              ],
+            },
+          ]}
+        >
+          <Icon
+            name="ChatBubbleOvalLeftEllipsisIcon"
+            size={fontSize(60)}
+            color={theme.colors.primary}
+          />
+        </Animated.View>
 
-          {/* Premium Contact Options */}
-          <View style={styles.contactRow}>
-            {[
-              { name: "PhoneIcon", label: "Call Us" },
-              { name: "EnvelopeIcon", label: "Email" },
-              { name: "ChatBubbleOvalLeftIcon", label: "Chat" },
-            ].map((item, index) => (
-              <Animated.View key={index} style={styles.contactBox}>
-                <LinearGradient
-                  colors={["#000", "#1a1a1a"]}
-                  style={styles.glossyBox}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Icon name={item.name} color={colors.white} size={WP(8)} />
-                  <Text style={styles.contactText}>{item.label}</Text>
-                </LinearGradient>
-              </Animated.View>
-            ))}
-          </View>
+        {/* Title */}
+        <Animated.Text
+          style={[
+            styles.title,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          Contact Us
+        </Animated.Text>
 
-          {/* Heading */}
-          <Text style={styles.heading}>We’d love to hear from you! </Text>
+        {/* Subtitle */}
+        <Animated.View
+          style={[
+            styles.subtitleWrapper,
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+          ]}
+        >
+          <LinearGradient
+            colors={[theme.colors.primary, theme.colors.secondary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.subtitleGradient}
+          >
+            <Text style={styles.subtitle}>We’d love to hear from you </Text>
+          </LinearGradient>
+        </Animated.View>
 
-          {/* Input Fields */}
-          <View style={styles.card}>
-            <Text style={styles.label}>Your Name</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your name"
-              placeholderTextColor={colors.placeholder}
-              value={name}
-              onChangeText={setName}
-            />
-          </View>
+        {/* Inputs */}
+        <Animated.View
+          style={[
+            styles.form,
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+          ]}
+        >
+          {["Your Name", "Your Email", "Your Message"].map((placeholder, i) => (
+            <View key={i} style={styles.inputCard}>
+              <TextInput
+                placeholder={placeholder}
+                placeholderTextColor={theme.colors.placeholder}
+                value={i === 0 ? name : i === 1 ? email : message}
+                onChangeText={(val) =>
+                  i === 0 ? setName(val) : i === 1 ? setEmail(val) : setMessage(val)
+                }
+                style={[
+                  styles.input,
+                  i === 2 ? { minHeight: HP(15), textAlignVertical: "top" } : {},
+                ]}
+                keyboardType={i === 1 ? "email-address" : "default"}
+                multiline={i === 2}
+              />
+            </View>
+          ))}
+        </Animated.View>
 
-          <View style={styles.card}>
-            <Text style={styles.label}>Your Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your email"
-              placeholderTextColor={colors.placeholder}
-              keyboardType="email-address"
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.label}>Message</Text>
-            <TextInput
-              style={styles.textArea}
-              placeholder="Type your message..."
-              placeholderTextColor={colors.placeholder}
-              multiline
-              value={message}
-              onChangeText={setMessage}
-            />
-          </View>
-
-          {/* Send Button */}
+        {/* Button */}
+        <Animated.View
+          style={[
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+            { alignItems: "center" },
+          ]}
+        >
           <TouchableOpacity
-            style={styles.button}
             onPress={sendMessage}
             disabled={loading}
+            activeOpacity={0.85}
           >
-            {loading ? (
-              <ActivityIndicator color={colors.white} />
-            ) : (
-              <Text style={styles.buttonText}>Send Message</Text>
-            )}
+            <LinearGradient
+              colors={[theme.colors.primary, theme.colors.secondary]}
+              style={styles.button}
+            >
+              {loading ? (
+                <ActivityIndicator color={theme.colors.black} />
+              ) : (
+                <Text style={styles.buttonText}>Send Message</Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
       </ScrollView>
 
-      {/* Toast Notification */}
-      <Animated.View
-        style={[
-          styles.toast,
-          {
-            backgroundColor:
-              toastType === "success" ? colors.dark : "#ff4d4d",
-            opacity: toast,
-            transform: [
-              {
-                translateY: toast.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [-50, 0],
-                }),
-              },
-            ],
-          },
-        ]}
-      >
-        <Text style={styles.toastText}>{toastMessage}</Text>
-      </Animated.View>
+      {/* Toast */}
+      {toast ? (
+        <Animated.View
+          style={[
+            styles.toast,
+            {
+              transform: [
+                {
+                  translateY: toastAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [80, 0],
+                  }),
+                },
+              ],
+              opacity: toastAnim,
+            },
+          ]}
+        >
+          <LinearGradient
+            colors={[theme.colors.primary, theme.colors.secondary]}
+            style={styles.toastInner}
+          >
+            <Text style={styles.toastText}>{toast}</Text>
+          </LinearGradient>
+        </Animated.View>
+      ) : null}
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  inner: { padding: WP(5) },
-  heading: {
-    fontSize: fontSize(22),
-    fontWeight: "700",
-    color: colors.dark,
-    marginBottom: HP(3),
-    marginTop: HP(2),
+  container: { flex: 1, overflow: "hidden" },
+  glow1: {
+    position: "absolute",
+    width: 300,
+    height: 300,
+    backgroundColor: "transparents",
+    borderRadius: 150,
+    top: HP(15),
+    left: WP(10),
+    blurRadius: 90,
   },
-  contactRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: HP(3),
+  glow2: {
+    position: "absolute",
+    width: 250,
+    height: 250,
+    backgroundColor: "transparent",
+    borderRadius: 125,
+    bottom: HP(10),
+    right: WP(15),
+    blurRadius: 80,
   },
-  contactBox: {
-    flex: 1,
-    marginHorizontal: WP(1.5),
-    borderRadius: 15,
-    overflow: "hidden",
-    elevation: 5,
+  title: {
+    fontSize: fontSize(34),
+    fontWeight: "800",
+    color: theme.colors.white,
+    textAlign: "center",
+    marginTop: HP(4),
+    letterSpacing: 1.2,
   },
-  glossyBox: {
-    paddingVertical: HP(3),
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  contactText: {
-    color: colors.white,
-    fontSize: fontSize(12),
-    marginTop: HP(1),
-    fontWeight: "600",
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 15,
-    padding: WP(4),
-    marginBottom: HP(2),
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-  },
-  label: {
-    fontSize: fontSize(14),
-    fontWeight: "500",
-    color: colors.dark,
-    marginBottom: HP(1),
-  },
-  input: {
-    fontSize: fontSize(14),
-    color: colors.dark,
-  },
-  textArea: {
-    fontSize: fontSize(14),
-    color: colors.dark,
-    minHeight: HP(15),
-    textAlignVertical: "top",
-  },
-  button: {
-    backgroundColor: colors.dark,
-    paddingVertical: HP(2),
+  subtitleWrapper: {
+    alignSelf: "center",
     borderRadius: 25,
-    alignItems: "center",
-    marginTop: HP(3),
+    marginVertical: HP(2),
+  },
+  subtitleGradient: {
+    paddingHorizontal: WP(5),
+    paddingVertical: HP(0.8),
+    borderRadius: 25,
+  },
+  subtitle: {
+    fontSize: fontSize(15),
+    color: theme.colors.black,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  form: {
+    marginTop: HP(2),
+    marginHorizontal: WP(7),
+  },
+  inputCard: {
+    backgroundColor: theme.colors.glass,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.15)",
+    paddingHorizontal: WP(4),
+    paddingVertical: HP(1.5),
+    marginBottom: HP(2),
+    shadowColor: theme.colors.primary,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
     elevation: 4,
   },
+  input: {
+    fontSize: fontSize(15),
+    color: theme.colors.white,
+  },
+  button: {
+    borderRadius: 99,
+    paddingVertical: HP(2.2),
+    paddingHorizontal: WP(22),
+    marginTop: HP(3),
+    shadowColor: theme.colors.primary,
+    shadowOpacity: 0.7,
+    shadowRadius: 12,
+    elevation: 10,
+  },
   buttonText: {
-    color: colors.white,
-    fontSize: fontSize(16),
-    fontWeight: "600",
+    fontSize: fontSize(17),
+    fontWeight: "700",
+    color: theme.colors.black,
+  },
+  iconCircle: {
+    alignSelf: "center",
+    marginTop: HP(2),
+    padding: WP(6),
+    borderRadius: 100,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+    shadowColor: theme.colors.secondary,
+    shadowOpacity: 0.8,
+    shadowRadius: 12,
+    elevation: 15,
   },
   toast: {
     position: "absolute",
-    top: 40,
-    left: WP(10),
-    right: WP(10),
-    padding: WP(4),
-    borderRadius: 12,
-    alignItems: "center",
-    elevation: 5,
+    bottom: HP(8),
+    alignSelf: "center",
+  },
+  toastInner: {
+    paddingHorizontal: WP(8),
+    paddingVertical: HP(1.5),
+    borderRadius: 25,
   },
   toastText: {
-    color: colors.white,
+    color: theme.colors.black,
+    fontWeight: "700",
     fontSize: fontSize(14),
+    textAlign: "center",
   },
 });

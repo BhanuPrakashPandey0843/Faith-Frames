@@ -16,8 +16,6 @@ import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { hp, wp } from "../../helpers/common";
-
-// ✅ Firebase
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { app } from "../../firebaseConfig";
@@ -26,8 +24,8 @@ const theme = {
   colors: {
     white: "#FFFFFF",
     black: "#000000",
-    primary: "#FFD700", // gold
-    secondary: "#00FF87", // neon green
+    primary: "#FFD700",
+    secondary: "#00FF87",
     dark: "#001400",
     neutral: (opacity) => `rgba(255,255,255,${opacity})`,
   },
@@ -35,7 +33,12 @@ const theme = {
 
 const tabs = [
   { id: "home", icon: "home-outline", lib: Ionicons, route: "/" },
-  { id: "lightbulb", icon: "lightbulb", lib: FontAwesome5, route: "/motivation/MotivationScreen" },
+  {
+    id: "lightbulb",
+    icon: "lightbulb",
+    lib: FontAwesome5,
+    route: "/motivation/MotivationScreen",
+  },
   { id: "settings", icon: "settings-outline", lib: Ionicons, route: "/setting" },
   { id: "quiz", icon: "help-outline", lib: MaterialIcons, route: "/quiz" },
 ];
@@ -45,6 +48,8 @@ const MotivationScreen = () => {
   const paddingTop = top > 0 ? top + 10 : 30;
 
   const router = useRouter();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
   const profileAnim = useRef(new Animated.Value(1)).current;
   const tabScale = useRef({}).current;
 
@@ -53,20 +58,32 @@ const MotivationScreen = () => {
   const [activeTab, setActiveTab] = useState("lightbulb");
 
   useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 900,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 900,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  useEffect(() => {
     const fetchUserData = async () => {
       try {
         const auth = getAuth(app);
         const db = getFirestore(app);
         const currentUser = auth.currentUser;
-
         if (!currentUser) {
           setLoading(false);
           return;
         }
-
         const docRef = doc(db, "users", currentUser.uid);
         const docSnap = await getDoc(docRef);
-
         if (docSnap.exists()) {
           setUserData(docSnap.data());
         }
@@ -76,26 +93,22 @@ const MotivationScreen = () => {
         setLoading(false);
       }
     };
-
     fetchUserData();
   }, []);
 
   const handleTabPress = (tabId, route) => {
     if (!tabScale[tabId]) tabScale[tabId] = new Animated.Value(1);
-
     setActiveTab(tabId);
-
     Animated.sequence([
       Animated.spring(tabScale[tabId], { toValue: 1.2, friction: 3, useNativeDriver: true }),
       Animated.spring(tabScale[tabId], { toValue: 1, friction: 4, useNativeDriver: true }),
     ]).start();
-
     router.push(route);
   };
 
   return (
     <LinearGradient colors={["#001400", "#000"]} style={{ flex: 1, paddingTop }}>
-      {/* ✅ Top Bar */}
+      {/* ✅ HEADER */}
       <BlurView intensity={60} tint="dark" style={styles.header}>
         <View>
           {loading ? (
@@ -106,6 +119,7 @@ const MotivationScreen = () => {
             </Text>
           )}
         </View>
+
         <Pressable
           onPressIn={() =>
             Animated.spring(profileAnim, { toValue: 0.9, useNativeDriver: true }).start()
@@ -117,30 +131,34 @@ const MotivationScreen = () => {
           <Animated.View
             style={[styles.profileImageContainer, { transform: [{ scale: profileAnim }] }]}
           >
-            {userData?.photoURL ? (
-              <Image source={{ uri: userData.photoURL }} style={styles.profileImage} />
-            ) : (
-              <Image
-                source={require("../../assets/images/imagea.png")}
-                style={styles.profileImage}
-              />
-            )}
+            <Image
+              source={
+                userData?.photoURL
+                  ? { uri: userData.photoURL }
+                  : require("../../assets/images/imagea.png")
+              }
+              style={styles.profileImage}
+            />
           </Animated.View>
         </Pressable>
       </BlurView>
 
-      {/* ✅ Scrollable Content */}
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: hp(12) }}>
-        <LinearGradient colors={[theme.colors.primary, theme.colors.secondary]} style={styles.motivationBox}>
-          <Text style={styles.motivationTitle}>Stay Inspired</Text>
-          <Text style={styles.motivationText}>
-            {userData?.lastPlayed
-              ? `Last played: ${new Date(userData.lastPlayed).toLocaleString()}`
-              : "This is your dedicated Motivation Screen.\nAdd quotes, verses, or images here."}
-          </Text>
-        </LinearGradient>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* ✅ HERO SECTION */}
+        <Animated.View
+          style={[
+            styles.heroContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <Text style={styles.subtitle}>Meet Faith Frames</Text>
+          <Text style={styles.title}>Sacred Pathways{"\n"}Begin Here</Text>
+        </Animated.View>
 
-        {/* Explore Section */}
+        {/* ✅ EXPLORE SECTION */}
         <View style={styles.exploreSection}>
           <View style={styles.exploreHeader}>
             <Text style={styles.exploreTitle}>Explore</Text>
@@ -149,24 +167,60 @@ const MotivationScreen = () => {
 
           <View style={styles.cardGrid}>
             {[
-              { icon: "book-outline", title: "Daily Verse", desc: "Read a powerful verse each day.", route: "/motivation/daily-verse" },
-              { icon: "hand-left-outline", title: "Daily Prayer", desc: "Start your day with peace.", route: "/motivation/daily-prayers" },
-              { icon: "bookmarks-outline", title: "God's Word", desc: "Dive deeper into scripture.", route: "/motivation/gods-words" },
-              { icon: "people-outline", title: "The Witness", desc: "Share testimonies of faith.", route: "/motivation/witness" },
+              {
+                icon: "book-outline",
+                title: "Daily Verse",
+                desc: "Scripture daily, soul steady.",
+                route: "/motivation/daily-verse",
+              },
+              {
+                icon: "hand-left-outline",
+                title: "Daily Prayer",
+                desc: "One prayer, endless strength.",
+                route: "/motivation/daily-prayers",
+              },
+              {
+                icon: "bookmarks-outline",
+                title: "God's Word",
+                desc: "Strength comes from His Word.",
+                route: "/motivation/gods-words",
+              },
+              {
+                icon: "people-outline",
+                title: "The Witness",
+                desc: "Your life is testimony.",
+                route: "/motivation/witness",
+              },
             ].map((item, index) => (
               <Pressable key={index} style={styles.card} onPress={() => router.push(item.route)}>
-                <BlurView intensity={40} tint="dark" style={styles.cardBlur}>
-                  <Ionicons name={item.icon} size={28} color={theme.colors.primary} />
-                  <Text style={styles.cardTitle}>{item.title}</Text>
-                  <Text style={styles.cardDesc}>{item.desc}</Text>
-                </BlurView>
+                <LinearGradient
+                  colors={["rgba(255,215,0,0.15)", "rgba(0,255,135,0.1)"]}
+                  style={styles.cardGradient}
+                >
+                  <BlurView intensity={40} tint="dark" style={styles.cardBlur}>
+                    <Ionicons name={item.icon} size={30} color={theme.colors.primary} />
+                    <Text style={styles.cardTitle}>{item.title}</Text>
+                    <Text style={styles.cardDesc}>{item.desc}</Text>
+                  </BlurView>
+                </LinearGradient>
               </Pressable>
             ))}
           </View>
         </View>
+
+        {/* ✅ MOTIVATION BOX */}
+        <LinearGradient
+          colors={[theme.colors.primary, theme.colors.secondary]}
+          style={styles.motivationBox}
+        >
+          <Text style={styles.motivationTitle}>Holy Connect</Text>
+          <Text style={styles.motivationSubtitle}>
+            Connect with God in real time—pray, listen, and receive.
+          </Text>
+        </LinearGradient>
       </ScrollView>
 
-      {/* ✅ Premium Bottom Nav (same as HomeScreen) */}
+      {/* ✅ BOTTOM NAVIGATION */}
       <LinearGradient
         colors={["#00ff87", "#FFD700"]}
         start={{ x: 0, y: 0 }}
@@ -186,7 +240,11 @@ const MotivationScreen = () => {
                   { transform: [{ scale: tabScale[id] }] },
                 ]}
               >
-                <IconLib name={icon} size={23} color={isActive ? theme.colors.black : "#fff"} />
+                <IconLib
+                  name={icon}
+                  size={23}
+                  color={isActive ? theme.colors.black : "#fff"}
+                />
               </Animated.View>
             </Pressable>
           );
@@ -223,28 +281,30 @@ const styles = StyleSheet.create({
   },
   profileImage: { width: "100%", height: "100%", resizeMode: "cover" },
 
-  motivationBox: {
-    margin: wp(4),
-    borderRadius: 20,
-    padding: wp(6),
-    shadowColor: theme.colors.primary,
-    shadowOpacity: 0.35,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 12,
-    elevation: 6,
+  /** ✅ HERO SECTION */
+  heroContainer: {
+    alignItems: "flex-start",
+    marginVertical: hp(4),
+    paddingHorizontal: wp(6),
   },
-  motivationTitle: {
-    fontSize: hp(3),
-    fontWeight: "700",
-    color: "#000",
-    marginBottom: 8,
+  title: {
+    fontSize: hp(3.8),
+    fontWeight: "800",
+    color: theme.colors.white,
+    textAlign: "left",
+    textShadowColor: "rgba(255,215,0,0.3)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
-  motivationText: {
-    fontSize: hp(2),
-    color: "#000",
-    lineHeight: 22,
+  subtitle: {
+    fontSize: hp(2.3),
+    color: "rgba(255,255,255,0.8)",
+    marginBottom: hp(1),
+    textAlign: "left",
+    letterSpacing: 1,
   },
 
+  /** ✅ EXPLORE SECTION */
   exploreSection: {
     marginTop: hp(2),
     paddingHorizontal: wp(4),
@@ -256,7 +316,7 @@ const styles = StyleSheet.create({
     marginBottom: hp(1.5),
   },
   exploreTitle: {
-    fontSize: hp(2.5),
+    fontSize: hp(2.6),
     fontWeight: "700",
     color: theme.colors.white,
   },
@@ -277,13 +337,14 @@ const styles = StyleSheet.create({
     marginBottom: hp(2),
     overflow: "hidden",
   },
+  cardGradient: { flex: 1, borderRadius: 18 },
   cardBlur: {
     flex: 1,
     padding: wp(4),
     justifyContent: "space-between",
     borderRadius: 18,
     borderWidth: 1.5,
-    borderColor: "rgba(255,215,0,0.5)",
+    borderColor: "rgba(255,215,0,0.4)",
   },
   cardTitle: {
     marginTop: hp(1),
@@ -296,7 +357,26 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.7)",
     marginTop: 6,
   },
-
+  motivationBox: {
+    margin: wp(4),
+    borderRadius: 22,
+    padding: wp(6),
+    shadowColor: theme.colors.primary,
+    shadowOpacity: 0.35,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  motivationTitle: {
+    fontSize: hp(2.8),
+    fontWeight: "700",
+    color: theme.colors.black,
+    marginBottom: hp(0.5),
+  },
+  motivationSubtitle: {
+    fontSize: hp(2),
+    color: "rgba(0,0,0,0.7)",
+  },
   floatingBottomNav: {
     position: "absolute",
     bottom: hp(2.2),
@@ -308,7 +388,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     ...Platform.select({
-      ios: { shadowColor: "#000", shadowOpacity: 0.25, shadowOffset: { width: 0, height: 6 }, shadowRadius: 8 },
+      ios: {
+        shadowColor: "#000",
+        shadowOpacity: 0.25,
+        shadowOffset: { width: 0, height: 6 },
+        shadowRadius: 8,
+      },
       android: { elevation: 10 },
     }),
   },
@@ -323,3 +408,5 @@ const styles = StyleSheet.create({
 });
 
 export default MotivationScreen;
+
+

@@ -1,16 +1,28 @@
 // app/legal/terms-and-conditions.js
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import {
-  ScrollView,
   View,
   Text,
   StyleSheet,
-  Animated
+  ScrollView,
+  Animated,
+  Easing,
 } from "react-native";
-import { useRouter } from "expo-router";
-import TopBar from "../../components/TopBar";
-import { colors } from "../theme/colors";
-import { fontSize, WP, HP } from "../theme/scale";
+import { LinearGradient } from "expo-linear-gradient";
+import { FileTextIcon } from "lucide-react-native"; // ✅ replaced missing ScrollTextIcon
+import { fontSize, HP, WP } from "../theme/scale";
+
+const theme = {
+  colors: {
+    white: "#fff",
+    black: "#000",
+    primary: "#FFD700",
+    secondary: "#00FF87",
+    glass: "rgba(255,255,255,0.1)",
+    placeholder: "rgba(255,255,255,0.6)",
+    bg: "#000",
+  },
+};
 
 const TERMS = [
   {
@@ -75,108 +87,204 @@ const TERMS = [
   },
 ];
 
-const TermsAndConditions = () => {
-  const router = useRouter();
-  const fadeAnim = new Animated.Value(0);
+export default function TermsAndConditions() {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const iconAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 600,
-      useNativeDriver: true,
-    }).start();
+    Animated.parallel([
+      Animated.timing(iconAnim, {
+        toValue: 1,
+        duration: 1000,
+        easing: Easing.out(Easing.exp),
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        delay: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        easing: Easing.out(Easing.cubic),
+        delay: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
 
   return (
-    <View style={styles.container}>
-      <TopBar
-        title="Terms & Conditions"
-        leftView
-       
-      />
+    <LinearGradient colors={["#001400", "#000"]} style={styles.container}>
+      {/* Glow background elements */}
+      <View style={styles.glow1} />
+      <View style={styles.glow2} />
 
-      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-        <ScrollView
-          contentContainerStyle={styles.contentContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          <Text style={styles.title}>Terms and Conditions – Faith Frames</Text>
-          <Text style={styles.lastUpdated}>Last Updated: </Text>
-
-          {TERMS.map((item, index) => (
-            <Animated.View
-              key={index}
-              style={[
-                styles.card,
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingVertical: HP(8),
+          paddingHorizontal: WP(6),
+        }}
+      >
+        {/* Header Icon */}
+        <Animated.View
+          style={[
+            styles.iconCircle,
+            {
+              opacity: iconAnim,
+              transform: [
                 {
-                  transform: [
-                    {
-                      scale: fadeAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0.95, 1],
-                      }),
-                    },
-                  ],
+                  scale: iconAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.6, 1],
+                  }),
                 },
-              ]}
-            >
-              <Text style={styles.heading}>{item.title}</Text>
-              <Text style={styles.paragraph}>{item.body}</Text>
-            </Animated.View>
+              ],
+            },
+          ]}
+        >
+          <FileTextIcon
+            size={fontSize(60)}
+            color={theme.colors.primary}
+            style={{ shadowColor: theme.colors.secondary, shadowOpacity: 0.8 }}
+          />
+        </Animated.View>
+
+        {/* Title */}
+        <Animated.Text
+          style={[
+            styles.title,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          Terms & Conditions
+        </Animated.Text>
+
+        {/* Subtitle */}
+        <Animated.View
+          style={[
+            styles.subtitleWrapper,
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+          ]}
+        >
+          <LinearGradient
+            colors={[theme.colors.primary, theme.colors.secondary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.subtitleGradient}
+          >
+            <Text style={styles.subtitle}>
+              Please read carefully before using Faith Frames
+            </Text>
+          </LinearGradient>
+        </Animated.View>
+
+        {/* Terms Content */}
+        <Animated.View
+          style={[
+            { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+            styles.policyWrapper,
+          ]}
+        >
+          {TERMS.map((item, i) => (
+            <View key={i} style={styles.card}>
+              <Text style={styles.cardTitle}>{item.title}</Text>
+              <Text style={styles.cardText}>{item.body}</Text>
+            </View>
           ))}
-
-          <View style={{ height: HP(4) }} />
-        </ScrollView>
-      </Animated.View>
-    </View>
+        </Animated.View>
+      </ScrollView>
+    </LinearGradient>
   );
-};
-
-export default TermsAndConditions;
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
+  container: { flex: 1, overflow: "hidden" },
+  glow1: {
+    position: "absolute",
+    width: 350,
+    height: 350,
+    backgroundColor: "",
+    borderRadius: 175,
+    top: HP(10),
+    left: WP(10),
   },
-  contentContainer: {
-    paddingHorizontal: WP(5),
-    paddingTop: HP(2),
-    paddingBottom: HP(3),
+  glow2: {
+    position: "absolute",
+    width: 300,
+    height: 300,
+    backgroundColor: "",
+    borderRadius: 150,
+    bottom: HP(8),
+    right: WP(10),
+  },
+  iconCircle: {
+    alignSelf: "center",
+    marginBottom: HP(2),
+    padding: WP(6),
+    borderRadius: 100,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+    shadowColor: theme.colors.secondary,
+    shadowOpacity: 0.8,
+    shadowRadius: 12,
+    elevation: 15,
   },
   title: {
-    fontSize: fontSize(18),
-    fontWeight: "700",
-    color: colors.dark,
-    marginBottom: HP(0.5),
+    fontSize: fontSize(32),
+    fontWeight: "800",
+    color: theme.colors.white,
+    textAlign: "center",
+    letterSpacing: 1.2,
   },
-  lastUpdated: {
-    fontSize: fontSize(14),
-    color: colors.placeholder,
-    marginBottom: HP(2),
+  subtitleWrapper: {
+    alignSelf: "center",
+    borderRadius: 25,
+    marginVertical: HP(2),
+  },
+  subtitleGradient: {
+    paddingHorizontal: WP(5),
+    paddingVertical: HP(0.8),
+    borderRadius: 25,
+  },
+  subtitle: {
+    fontSize: fontSize(15),
+    color: theme.colors.black,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  policyWrapper: {
+    marginTop: HP(2),
   },
   card: {
-    backgroundColor: colors.white,
-    borderRadius: WP(3),
-    padding: WP(4),
-    marginBottom: HP(1.5),
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 2,
+    backgroundColor: theme.colors.glass,
+    borderRadius: 16,
+    paddingHorizontal: WP(4),
+    paddingVertical: HP(2),
+    marginBottom: HP(2),
     borderWidth: 1,
-    borderColor: colors.lightGrey,
+    borderColor: "rgba(255,255,255,0.15)",
+    shadowColor: theme.colors.primary,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  heading: {
-    fontSize: fontSize(16),
-    fontWeight: "600",
-    color: colors.dark,
-    marginBottom: HP(0.5),
+  cardTitle: {
+    fontSize: fontSize(17),
+    fontWeight: "700",
+    color: theme.colors.primary,
+    marginBottom: HP(1),
   },
-  paragraph: {
+  cardText: {
     fontSize: fontSize(14),
     lineHeight: fontSize(20),
-    color: colors.dark,
+    color: theme.colors.white,
   },
 });

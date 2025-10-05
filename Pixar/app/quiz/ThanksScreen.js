@@ -1,5 +1,5 @@
 // app/quiz/ThanksScreen.js
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -8,19 +8,18 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  Animated,
+  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { HP, WP, fontSize } from "../theme/scale";
 import { db } from "../../firebaseConfig";
-import {
-  collection,
-  query,
-  orderBy,
-  limit,
-  getDocs,
-} from "firebase/firestore";
+import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+
+const { width, height } = Dimensions.get("window");
 
 const ThanksScreen = () => {
   const router = useRouter();
@@ -31,6 +30,55 @@ const ThanksScreen = () => {
 
   const auth = getAuth();
   const currentUser = auth.currentUser;
+
+  // 🎉 Button animation
+  const floatAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, {
+          toValue: -10,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(floatAnim, {
+          toValue: 0,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  // 🎊 Falling ribbons animation
+  const ribbons = new Array(12).fill(0).map((_, i) => ({
+    x: Math.random() * width,
+    delay: i * 300,
+    color: ["#FFD700", "#FFB84C", "#FF6347", "#6A5ACD"][i % 4],
+  }));
+
+  const ribbonAnimations = ribbons.map(() => new Animated.Value(-50));
+
+  useEffect(() => {
+    ribbons.forEach((r, i) => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(ribbonAnimations[i], {
+            toValue: height + 50,
+            duration: 4000,
+            delay: r.delay,
+            useNativeDriver: true,
+          }),
+          Animated.timing(ribbonAnimations[i], {
+            toValue: -50,
+            duration: 0,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    });
+  }, []);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -50,7 +98,6 @@ const ThanksScreen = () => {
 
         setLeaderboard(data);
 
-        // ✅ Find current user's rank
         if (currentUser) {
           const found = data.find((u) => u.id === currentUser.uid);
           if (found) setUserRank(found.rank);
@@ -65,52 +112,93 @@ const ThanksScreen = () => {
     fetchLeaderboard();
   }, []);
 
+  const getRankColor = (rank) => {
+    switch (rank) {
+      case 1:
+        return "#FFD700"; // Gold
+      case 2:
+        return "#C0C0C0"; // Silver
+      case 3:
+        return "#CD7F32"; // Bronze
+      default:
+        return "#bbb";
+    }
+  };
+
   const renderItem = ({ item }) => {
     const isCurrentUser = currentUser && item.id === currentUser.uid;
 
     return (
-      <View
-        style={[
-          styles.card,
-          isCurrentUser && styles.currentUserCard,
-        ]}
-      >
-        <Text style={[styles.rank, isCurrentUser && styles.highlightTxt]}>
-          #{item.rank}
-        </Text>
+      <BlurView intensity={60} tint="dark" style={styles.cardWrapper}>
+        <View
+          style={[
+            styles.card,
+            isCurrentUser && styles.currentUserCard,
+          ]}
+        >
+          <Text
+            style={[
+              styles.rank,
+              { color: getRankColor(item.rank) },
+              isCurrentUser && styles.highlightTxt,
+            ]}
+          >
+            #{item.rank}
+          </Text>
 
-        {item.photoURL ? (
-          <Image source={{ uri: item.photoURL }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatar, { backgroundColor: "#333" }]} />
-        )}
+          {item.photoURL ? (
+            <Image source={{ uri: item.photoURL }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatar, { backgroundColor: "#333" }]} />
+          )}
 
-        <Text style={[styles.name, isCurrentUser && styles.highlightTxt]}>
-          {item.name || "Anonymous"}
-        </Text>
+          <Text style={[styles.name, isCurrentUser && styles.highlightTxt]}>
+            {item.name || "Anonymous"}
+          </Text>
 
-        <Text style={[styles.score, isCurrentUser && styles.highlightTxt]}>
-          {item.latestScore} / {item.total || 20}
-        </Text>
-      </View>
+          <Text style={[styles.score, isCurrentUser && styles.highlightTxt]}>
+            {item.latestScore} / {item.total || 20}
+          </Text>
+        </View>
+      </BlurView>
     );
   };
 
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="large" color="#fff" />
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#FFD700" />
       </View>
     );
   }
 
   return (
-    <LinearGradient colors={["#000", "#111", "#000"]} style={styles.container}>
-      <Text style={styles.header}> Leaderboard </Text>
+    <LinearGradient colors={["#0f0f0f", "#1c1c1c", "#000"]} style={styles.container}>
+      {/* 🎊 Falling ribbons */}
+      {ribbons.map((r, i) => (
+        <Animated.View
+          key={i}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: r.x,
+            transform: [{ translateY: ribbonAnimations[i] }],
+          }}
+        >
+          <View style={[styles.ribbon, { backgroundColor: r.color }]} />
+        </Animated.View>
+      ))}
+
+      <Text style={styles.header}>🏆 Leaderboard 🏆</Text>
 
       {/* ✅ User Summary Card */}
       {currentUser && (
-        <View style={styles.userSummaryCard}>
+        <BlurView intensity={80} tint="dark" style={styles.userSummaryCard}>
           {currentUser.photoURL ? (
             <Image source={{ uri: currentUser.photoURL }} style={styles.userAvatar} />
           ) : (
@@ -120,15 +208,12 @@ const ThanksScreen = () => {
             <Text style={styles.summaryText}>
               {currentUser.displayName || "Anonymous"}
             </Text>
-            <Text style={styles.subSummaryText}>ID: {currentUser.uid}</Text>
-            <Text style={styles.subSummaryText}>
-              Score: {score} / {total}
-            </Text>
+            <Text style={styles.subSummaryText}>Score: {score} / {total}</Text>
             {userRank && (
               <Text style={styles.subSummaryText}>Rank: #{userRank}</Text>
             )}
           </View>
-        </View>
+        </BlurView>
       )}
 
       <FlatList
@@ -138,10 +223,19 @@ const ThanksScreen = () => {
         contentContainerStyle={styles.list}
       />
 
-      {/* ✅ Button shifted up */}
-      <TouchableOpacity style={styles.button} onPress={() => router.replace("/home")}>
-        <Text style={styles.buttonText}>Go to Home</Text>
-      </TouchableOpacity>
+      {/* 🎉 Floating Button */}
+      <Animated.View style={{ transform: [{ translateY: floatAnim }], marginBottom: HP(6) }}>
+        <LinearGradient
+          colors={["#FFD700", "#FFB84C"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.button}
+        >
+          <TouchableOpacity onPress={() => router.replace("/home")}>
+            <Text style={styles.buttonText}>Go to Home</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </Animated.View>
     </LinearGradient>
   );
 };
@@ -154,20 +248,27 @@ const styles = StyleSheet.create({
   },
   header: {
     fontSize: fontSize(28),
-    color: "#fff",
+    color: "#FFD700",
     fontWeight: "900",
     textAlign: "center",
     marginBottom: HP(2),
+    textShadowColor: "#000",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+  },
+  ribbon: {
+    width: 8,
+    height: 30,
+    borderRadius: 4,
+    margin: 2,
   },
   userSummaryCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#111",
     padding: WP(4),
     borderRadius: WP(6),
     marginBottom: HP(2),
-    borderWidth: 1,
-    borderColor: "#fff",
+    overflow: "hidden",
   },
   userAvatar: {
     width: WP(14),
@@ -188,27 +289,26 @@ const styles = StyleSheet.create({
   list: {
     paddingBottom: HP(2),
   },
+  cardWrapper: {
+    marginBottom: HP(1.5),
+    borderRadius: WP(6),
+    overflow: "hidden",
+  },
   card: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: HP(2),
     paddingHorizontal: WP(5),
     borderRadius: WP(6),
-    marginBottom: HP(1.5),
-    backgroundColor: "#111",
-    shadowColor: "#000",
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 6,
+    backgroundColor: "rgba(20,20,20,0.8)",
   },
   currentUserCard: {
     borderWidth: 2,
-    borderColor: "#fff",
+    borderColor: "#FFD700",
   },
   rank: {
     fontSize: fontSize(18),
     fontWeight: "700",
-    color: "#bbb",
     width: WP(12),
   },
   avatar: {
@@ -229,16 +329,18 @@ const styles = StyleSheet.create({
     color: "#bbb",
   },
   highlightTxt: {
-    color: "#fff",
+    color: "#FFD700",
     fontWeight: "900",
   },
   button: {
-    marginTop: HP(2), // shifted up
     alignSelf: "center",
-    backgroundColor: "#fff",
+    borderRadius: WP(10),
     paddingVertical: HP(1.5),
     paddingHorizontal: WP(12),
-    borderRadius: WP(10),
+    shadowColor: "#FFD700",
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    elevation: 6,
   },
   buttonText: {
     fontSize: fontSize(18),
