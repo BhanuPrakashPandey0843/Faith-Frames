@@ -12,12 +12,12 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
-import { useRouter } from "expo-router";  // ✅ Import router
+import { useRouter } from "expo-router";  
 
 export default function DailyVerse() {
   const [verseData, setVerseData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter(); // ✅ Initialize router
+  const router = useRouter(); 
 
   useEffect(() => {
     const fetchVerse = async () => {
@@ -82,12 +82,7 @@ export default function DailyVerse() {
       <View style={styles.overlay}>
         {/* 🔹 Top Bar with Back Button */}
         <View style={styles.topBar}>
-          <TouchableOpacity
-            onPress={() => router.push("/motivation")} // ✅ Fixed navigation
-            style={styles.backButton}
-          >
-            <Ionicons name="arrow-back" size={26} color="white" />
-          </TouchableOpacity>
+         
           <Text style={styles.topTitle}>Daily Verse</Text>
           <View style={{ width: 40 }} />
         </View>

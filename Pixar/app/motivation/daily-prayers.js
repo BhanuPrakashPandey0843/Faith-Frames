@@ -92,12 +92,7 @@ export default function DailyPrayers() {
       <View style={styles.overlay}>
         {/* Top Bar with Back Button */}
         <View style={styles.topBar}>
-          <TouchableOpacity
-            onPress={() => router.push("/motivation")}
-            style={styles.backButton}
-          >
-            <Ionicons name="arrow-back" size={26} color="white" />
-          </TouchableOpacity>
+          
           <Text style={styles.topTitle}>Daily Prayers</Text>
           <View style={{ width: 40 }} />
         </View>
