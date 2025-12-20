@@ -39,10 +39,11 @@ const Layout = () => {
           />
 
           {/* ================= FAVOURITES ================= */}
-          <Stack.Screen name="favourite/FavouriteScreen" />
+          <Stack.Screen name="favourite/index" />
+          <Stack.Screen name="favourite/[id]" />
 
           {/* ================= MOTIVATION ================= */}
-          <Stack.Screen name="motivation/MotivationScreen" />
+          <Stack.Screen name="motivation/index" />
           <Stack.Screen name="motivation/daily-verse" />
           <Stack.Screen name="motivation/daily-prayers" />
           <Stack.Screen name="motivation/gods-words" />
@@ -54,26 +55,24 @@ const Layout = () => {
 
           {/* ================= PROFILE ================= */}
           <Stack.Screen name="profile/index" />
-          <Stack.Screen name="profile/EditProfileScreen" />
 
           {/* ================= SETTINGS ================= */}
-          <Stack.Screen name="setting/SettingScreen" />
+          <Stack.Screen name="setting/index" />
 
           {/* ================= INFO PAGES ================= */}
           <Stack.Screen name="contact-us/index" />
           <Stack.Screen name="rate-app/index" />
 
           {/* ================= QUIZ ================= */}
-          <Stack.Screen name="quiz/QuizScreen" />
+          <Stack.Screen name="quiz/index" />
           <Stack.Screen name="quiz/QuizQuestionScreen" />
           <Stack.Screen name="quiz/ProgressOpacity" />
           <Stack.Screen name="quiz/ThanksScreen" />
 
           {/* ================= WALLPAPER ================= */}
           <Stack.Screen name="wallpaper/index" />
-          <Stack.Screen name="wallpaper/WallpaperListScreen" />
           <Stack.Screen
-            name="wallpaper/WallpaperDetailScreen"
+            name="wallpaper/[id]"
             options={{
               presentation: "modal",
               animation: "slide_from_bottom",

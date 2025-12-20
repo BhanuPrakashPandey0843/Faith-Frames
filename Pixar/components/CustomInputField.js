@@ -33,6 +33,8 @@ const CustomInputField = ({
   showLength = false,
   borderColor,
   leftIcon,
+  rightIcon,
+  autoCapitalize = 'none',
 }) => {
   const styles = createStyles({
     error,
@@ -91,8 +93,8 @@ const CustomInputField = ({
           onChangeText={onChangeText}
           secureTextEntry={secureTextEntry && !isPasswordVisible}
           keyboardType={keyboardType}
-          placeholderTextColor={colors.textMuted}
-          autoCapitalize="none"
+          placeholderTextColor={bgColor === '#1a1a1a' ? '#666' : (colors.textMuted || '#999')}
+          autoCapitalize={autoCapitalize}
           autoCorrect={false}
           multiline={multiline}
           textAlignVertical={multiline ? 'top' : 'center'}
@@ -102,7 +104,8 @@ const CustomInputField = ({
             onBlur && onBlur();
           }}
         />
-        {secureTextEntry && (
+        {rightIcon && rightIcon}
+        {secureTextEntry && !rightIcon && (
           <Pressable onPress={togglePasswordVisibility}>
             <Icon
               name={isPasswordVisible ? 'eye-off' : 'eye'}
@@ -156,7 +159,8 @@ const createStyles = ({ error, isEditable, radius, bgColor, borderColor }) =>
     },
     input: {
       flex: 1,
-      color: isEditable ? colors.text : colors.placeholder,
+      color: isEditable ? (bgColor === '#1a1a1a' ? '#fff' : colors.text) : colors.placeholder,
+      fontSize: 16,
     },
     indicatorText: {
       color: colors.dark,

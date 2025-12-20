@@ -12,7 +12,7 @@ import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../config/firebase";
 import { hp, wp } from "../../helpers/common";
 
 const theme = {

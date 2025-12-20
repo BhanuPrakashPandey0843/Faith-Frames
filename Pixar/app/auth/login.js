@@ -36,12 +36,12 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Google Auth
+  // ✅ Google Auth - Disabled until credentials are configured
   const [request, response, promptAsync] = Google.useAuthRequest({
-    expoClientId: "<YOUR_EXPO_CLIENT_ID>.apps.googleusercontent.com",
-    iosClientId: "<YOUR_IOS_CLIENT_ID>.apps.googleusercontent.com",
-    androidClientId: "<YOUR_ANDROID_CLIENT_ID>.apps.googleusercontent.com",
-    webClientId: "<YOUR_WEB_CLIENT_ID>.apps.googleusercontent.com",
+    // expoClientId: "<YOUR_EXPO_CLIENT_ID>.apps.googleusercontent.com",
+    // iosClientId: "<YOUR_IOS_CLIENT_ID>.apps.googleusercontent.com",
+    // androidClientId: "<YOUR_ANDROID_CLIENT_ID>.apps.googleusercontent.com",
+    // webClientId: "<YOUR_WEB_CLIENT_ID>.apps.googleusercontent.com",
   });
 
   useEffect(() => {
@@ -60,6 +60,10 @@ export default function LoginScreen() {
       }
     }
   }, [response]);
+
+  const handleGoogleLogin = () => {
+    Alert.alert("Google Sign-In", "Google authentication is not configured. Please use email/password login.");
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -124,7 +128,7 @@ export default function LoginScreen() {
             entering={FadeInDown.delay(300).springify()}
             style={styles.subtitle}
           >
-            Login to view daily mortgage updates.
+            Login to access your faith-inspired content.
           </Animated.Text>
 
           {/* Email Input */}
@@ -138,6 +142,9 @@ export default function LoginScreen() {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+              bgColor="#1a1a1a"
+              borderColor="#333"
+              style={{ marginBottom: hp(2) }}
             />
           </Animated.View>
 
@@ -151,6 +158,9 @@ export default function LoginScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              bgColor="#1a1a1a"
+              borderColor="#333"
+              style={{ marginBottom: hp(1) }}
             />
             <Pressable onPress={() => router.push("/auth/forgot-password")}>
               <Text style={styles.forgotPassword}>Forgot Password?</Text>
@@ -191,11 +201,11 @@ export default function LoginScreen() {
 
           {/* Google & Apple */}
           <View style={styles.oauthWrapper}>
-            <Pressable style={styles.oauthBtn} onPress={() => promptAsync()}>
+            <Pressable style={styles.oauthBtn} onPress={handleGoogleLogin}>
               <Ionicons name="logo-google" size={20} color="#fff" />
               <Text style={styles.oauthText}>Google</Text>
             </Pressable>
-            <Pressable style={styles.oauthBtn}>
+            <Pressable style={styles.oauthBtn} onPress={() => Alert.alert("Apple Sign-In", "Apple authentication coming soon.")}>
               <AntDesign name="apple1" size={20} color="#fff" /> 
               <Text style={styles.oauthText}>Apple</Text>
             </Pressable>

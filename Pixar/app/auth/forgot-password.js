@@ -18,7 +18,7 @@ import SnackbarUtils from "../utils/SnackbarUtils";
 import { HP, WP } from "../theme/scale";
 
 // ✅ Firebase import
-import { auth } from "../../firebaseConfig";
+import { auth } from "../../config/firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 
 export default function ForgotPassword() {

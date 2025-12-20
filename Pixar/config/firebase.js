@@ -1,8 +1,9 @@
 // Pixar/config/firebase.js
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { initializeAuth, getReactNativePersistence, getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import { getFirestore } from "firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Firebase config
 const firebaseConfig = {
@@ -18,7 +19,25 @@ const firebaseConfig = {
 // ✅ Prevent duplicate initialization
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-export const auth = getAuth(app);
+// ✅ Initialize Auth with AsyncStorage persistence for React Native
+// Check if auth is already initialized
+let auth;
+try {
+  // Try to initialize with AsyncStorage persistence (first time)
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+} catch (error) {
+  // If already initialized, get the existing instance
+  if (error.code === 'auth/already-initialized' || error.message?.includes('already initialized')) {
+    auth = getAuth(app);
+  } else {
+    // For other errors, still try to get auth instance
+    auth = getAuth(app);
+  }
+}
+
+export { auth };
 export const storage = getStorage(app);
 export const db = getFirestore(app);
 export { app };

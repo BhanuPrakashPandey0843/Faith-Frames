@@ -19,7 +19,7 @@ import { BlurView } from "expo-blur";
 import { hp, wp } from "../../helpers/common";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { app } from "../../firebaseConfig";
+import { app } from "../../config/firebase";
 
 const theme = {
   colors: {

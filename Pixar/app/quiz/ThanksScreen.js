@@ -15,7 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { HP, WP, fontSize } from "../theme/scale";
-import { db } from "../../firebaseConfig";
+import { db } from "../../config/firebase";
 import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 

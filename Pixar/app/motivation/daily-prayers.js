@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../config/firebase";
 import { useRouter } from "expo-router";
 
 export default function DailyPrayers() {

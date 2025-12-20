@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { collection, onSnapshot, updateDoc, doc } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../config/firebase";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { hp, wp } from "../../helpers/common";

@@ -1,0 +1,29 @@
+{
+  "name": "Faith Frames",
+  "version": "1.0.1",
+  "main": "expo-router/entry",
+  "private": true,
+  "scripts": {
+    "start": "npx expo start",
+    "android": "npx expo start --android",
+    "ios": "npx expo start --ios",
+    "web": "npx expo start --web",
+    "reset-project": "node ./scripts/reset-project.js",
+    "test": "jest --watchAll",
+    "lint": "expo lint"
+  },
+  "jest": {
+    "preset": "jest-expo"
+  },
+  "dependencies": {
+    "expo": "~52.0.11",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-native": "0.76.6"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "typescript": "~5.4.5"
+  }
+}
+

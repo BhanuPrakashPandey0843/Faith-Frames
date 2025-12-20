@@ -21,7 +21,33 @@ import SnackbarUtils from "../utils/SnackbarUtils";
 import ProgressOpacity from "../quiz/ProgressOpacity";
 import { commonStyles } from "../utils/commonStyles";
 
-const { WallpaperManager } = NativeModules;
+// Safe access to WallpaperManager native module with fallback
+const WallpaperManager = NativeModules.WallpaperManager || {
+  setWallpaper: async (uri, type) => {
+    // Fallback: Use expo-sharing to let user save the image
+    const { shareAsync } = await import('expo-sharing');
+    const { downloadAsync, cacheDirectory } = await import('expo-file-system');
+    
+    try {
+      // Download image to cache
+      const fileUri = `${cacheDirectory}wallpaper_${Date.now()}.jpg`;
+      const downloadResult = await downloadAsync(uri, fileUri);
+      
+      // Share the image so user can set it manually
+      await shareAsync(downloadResult.uri);
+      
+      return {
+        status: 'success',
+        message: 'Please use your device\'s image viewer to set as wallpaper',
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        message: 'Wallpaper feature not available. Please use your device\'s image viewer.',
+      };
+    }
+  },
+};
 
 const WallpaperDetailScreen = () => {
   const router = useRouter();
@@ -85,13 +111,20 @@ const WallpaperDetailScreen = () => {
       setIsSettingWallpaper(false);
 
       if (result?.status === "success") {
-        SnackbarUtils.showInfo(result.message);
+        SnackbarUtils.showInfo(result.message || "Wallpaper option opened");
       } else {
         SnackbarUtils.showError(result?.message || "Failed to apply wallpaper");
       }
     } catch (error) {
       setIsSettingWallpaper(false);
-      SnackbarUtils.showError("Failed to set wallpaper: " + error.message);
+      // Fallback: Try using expo-sharing
+      try {
+        const { shareAsync } = await import('expo-sharing');
+        await shareAsync(item.uri);
+        SnackbarUtils.showInfo("Please use your device's image viewer to set as wallpaper");
+      } catch (shareError) {
+        SnackbarUtils.showError("Wallpaper feature not available. Please use your device's image viewer.");
+      }
     }
   };
 
